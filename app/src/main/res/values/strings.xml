@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Expense Tracker</string>
+    <string name="recent_expenses">Recent Expenses</string>
+    <string name="view_all">View All</string>
+    <string name="amount">AMOUNT</string>
+    <string name="save_expense">Save Expense</string>
+    <string name="what_did_you_spend_on">What did you spend on?</string>
+    <string name="e_g_weekly_groceries">e.g. Weekly Groceries</string>
+    <string name="category">Category</string>
+    <string name="food">Food</string>
+    <string name="groceries">Groceries</string>
+    <string name="shopping">Shopping</string>
+    <string name="fuel">Fuel</string>
+    <string name="entertainment">Entertainment</string>
+    <string name="travel">Travel</string>
+    <string name="bills">Bills</string>
+    <string name="finance">Finance</string>
+    <string name="health">Health</string>
+    <string name="sports">Sports</string>
+    <string name="family">Family</string>
+    <string name="other">Other</string>
+    <string name="add_expense">Add Expense</string>
+</resources>
