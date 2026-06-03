@@ -20,4 +20,15 @@
     <string name="family">Family</string>
     <string name="other">Other</string>
     <string name="add_expense">Add Expense</string>
+    <string name="_0_00">0.00</string>
+    <string name="top_category">Top Category</string>
+    <string name="monthly_spent">Monthly Spent</string>
+    <string name="loading_your_transactions">Loading your transactions...</string>
+    <string name="no_transactions_found">No transactions found</string>
+    <string name="months">Months</string>
+    <string name="categories">Categories</string>
+    <string name="apply">Apply</string>
+    <string name="filters">Filters</string>
+    <string name="clear_all">Clear all</string>
+    <string name="no_matches_for_your_filters">No matches for your filters</string>
 </resources>

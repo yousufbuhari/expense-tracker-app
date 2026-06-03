@@ -28,19 +28,25 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.SolidColor
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Locale
 import com.refresh.expensetracker.ui.theme.ExpenseTrackerTheme
 import com.refresh.expensetracker.ui.theme.PrimaryPurple
 import com.refresh.expensetracker.R
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.refresh.expensetracker.data.Transaction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(onClose: () -> Unit = {}) {
+fun AddExpenseScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel = viewModel()) {
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Food") }
+    var selectedCategory by remember { mutableStateOf("Housing") }
 
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
@@ -50,6 +56,8 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
 
     val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     val timeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
+    val scrollState = rememberScrollState()
 
     if (showDatePicker) {
         AlertDialog(
@@ -173,11 +181,11 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.add_expense), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
+            TopAppBar(
+                title = { Text(stringResource(R.string.add_expense), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -187,17 +195,25 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             
-            Text(stringResource(R.string.amount), fontSize = 14.sp, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                stringResource(R.string.amount),
+                letterSpacing = 1.sp,
+                fontSize = 12.sp, style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(R.drawable.ic_rupee),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(30.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 BasicTextField(
@@ -212,6 +228,7 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center
                     ),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier
                         .width(IntrinsicSize.Min)
@@ -220,7 +237,7 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
                         Box(contentAlignment = Alignment.Center) {
                             if (amount.isEmpty()) {
                                 Text(
-                                    text = "0.00",
+                                    text = stringResource(R.string._0_00),
                                     style = MaterialTheme.typography.displayLarge.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
@@ -259,7 +276,10 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            CategoryGrid(selectedCategory) { selectedCategory = it }
+            CategoryGrid(
+                modifier = Modifier.heightIn(max = 400.dp),
+                selectedCategory = selectedCategory
+            ) { selectedCategory = it }
             
             Spacer(modifier = Modifier.height(24.dp))
             
@@ -267,7 +287,10 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
                 OutlinedCard(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { showDatePicker = true },
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { showDatePicker = true },
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -291,7 +314,10 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
                 OutlinedCard(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { showTimePicker = true },
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { showTimePicker = true },
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -301,11 +327,47 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             Button(
-                onClick = { },
+                onClick = {
+                    val amountValue = amount.toDoubleOrNull() ?: 0.0
+                    if (description.isNotBlank() && amountValue > 0) {
+                        val calendar = Calendar.getInstance().apply {
+                            timeInMillis = selectedDate.timeInMillis
+                            set(Calendar.HOUR_OF_DAY, selectedTime.get(Calendar.HOUR_OF_DAY))
+                            set(Calendar.MINUTE, selectedTime.get(Calendar.MINUTE))
+                        }
+                        
+                        val icon = when (selectedCategory) {
+                            "Housing" -> R.drawable.ic_home
+                            "Food" -> R.drawable.ic_food
+                            "Groceries" -> R.drawable.ic_groceries
+                            "Shopping" -> R.drawable.ic_shop
+                            "Fuel" -> R.drawable.ic_fuel
+                            "Entertainment" -> R.drawable.ic_movies
+                            "Travel" -> R.drawable.ic_travel
+                            "Bills" -> R.drawable.ic_bills
+                            "Finance" -> R.drawable.ic_rupee
+                            "Health" -> R.drawable.ic_health
+                            "Sports" -> R.drawable.ic_sports
+                            "Family" -> R.drawable.ic_family
+                            else -> R.drawable.ic_other
+                        }
+
+                        val transaction = Transaction(
+                            title = description,
+                            amount = amountValue,
+                            date = calendar.timeInMillis,
+                            category = selectedCategory,
+                            isExpense = true,
+                            icon = icon
+                        )
+                        viewModel.insertTransaction(transaction)
+                        onClose()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -322,16 +384,21 @@ fun AddExpenseScreen(onClose: () -> Unit = {}) {
 }
 
 @Composable
-fun CategoryGrid(selectedCategory: String, onCategorySelected: (String) -> Unit) {
+fun CategoryGrid(
+    modifier: Modifier = Modifier,
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
     val categories = remember {
         listOf(
+            CategoryItem("Housing", R.drawable.ic_home),
             CategoryItem("Food", R.drawable.ic_food),
             CategoryItem("Groceries", R.drawable.ic_groceries),
             CategoryItem("Shopping", R.drawable.ic_shop),
             CategoryItem("Fuel", R.drawable.ic_fuel),
-            CategoryItem("Movies", R.drawable.ic_movies),
+            CategoryItem("Entertainment", R.drawable.ic_movies),
             CategoryItem("Travel", R.drawable.ic_travel),
-            CategoryItem("Bills", R.drawable.ic_receipt),
+            CategoryItem("Bills", R.drawable.ic_bills),
             CategoryItem("Finance", R.drawable.ic_rupee),
             CategoryItem("Health", R.drawable.ic_health),
             CategoryItem("Sports", R.drawable.ic_sports),
@@ -343,13 +410,17 @@ fun CategoryGrid(selectedCategory: String, onCategorySelected: (String) -> Unit)
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = modifier
     ) {
         items(categories) { category ->
             val isSelected = category.name == selectedCategory
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable { onCategorySelected(category.name) }
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onCategorySelected(category.name) }
             ) {
                 Box(
                     modifier = Modifier
@@ -453,11 +524,14 @@ fun CompactCalendar(
                                     .padding(2.dp)
                                     .clip(CircleShape)
                                     .background(if (isSelected) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent)
-                                    .clickable {
-                                        val newDate = (currentMonth.clone() as Calendar).apply { 
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) {
+                                        val newDate = (currentMonth.clone() as Calendar).apply {
                                             set(Calendar.YEAR, currentMonth.get(Calendar.YEAR))
                                             set(Calendar.MONTH, currentMonth.get(Calendar.MONTH))
-                                            set(Calendar.DAY_OF_MONTH, day) 
+                                            set(Calendar.DAY_OF_MONTH, day)
                                         }
                                         onDateSelected(newDate)
                                     },

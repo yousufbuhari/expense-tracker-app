@@ -19,6 +19,7 @@ import com.refresh.expensetracker.navigation.components.AnimatedNavIcon
 import com.refresh.expensetracker.navigation.components.AnimatedNavLabel
 import com.refresh.expensetracker.ui.dashboard.AddExpenseScreen
 import com.refresh.expensetracker.ui.dashboard.DashboardScreen
+import com.refresh.expensetracker.ui.expenses.ExpensesScreen
 import com.refresh.expensetracker.ui.theme.NavBgDark
 import com.refresh.expensetracker.ui.theme.NavBgLight
 import com.refresh.expensetracker.ui.theme.NavSelectedBgDark
@@ -97,8 +98,13 @@ fun ExpenseTrackerApp() {
                 )
             ) {
                 when (currentDestination) {
-                    AppDestinations.DASHBOARD -> DashboardScreen(onAddExpense = { showAddExpense = true })
-                    AppDestinations.EXPENSES -> Text("Expenses Screen")
+                    AppDestinations.DASHBOARD -> DashboardScreen(
+                        onAddExpense = { showAddExpense = true },
+                        onViewAll = { currentDestination = AppDestinations.EXPENSES }
+                    )
+                    AppDestinations.EXPENSES -> ExpensesScreen(
+                        onBack = { currentDestination = AppDestinations.DASHBOARD }
+                    )
                     AppDestinations.STATS -> Text("Stats Screen")
                     AppDestinations.SETTINGS -> Text("Settings Screen")
                 }

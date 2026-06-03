@@ -21,14 +21,80 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.refresh.expensetracker.R
+import com.refresh.expensetracker.data.Transaction
 import com.refresh.expensetracker.ui.theme.ExpenseTrackerTheme
 import com.refresh.expensetracker.ui.theme.SuccessGreen
 import com.refresh.expensetracker.ui.theme.ErrorRed
 import com.refresh.expensetracker.ui.theme.PrimaryPurple
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(onAddExpense: () -> Unit = {}) {
+fun DashboardScreen(
+    onAddExpense: () -> Unit = {},
+    onViewAll: () -> Unit = {},
+    viewModel: TransactionViewModel = viewModel()
+) {
+    val transactions by viewModel.allTransactions.collectAsState(initial = emptyList())
+    val totalIncome by viewModel.totalIncome.collectAsState(initial = 0.0)
+    val totalExpense by viewModel.totalExpense.collectAsState(initial = 0.0)
+    
+    var isRefreshing by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        delay(1000)
+        isLoading = false
+    }
+
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        scope.launch {
+            delay(3000)
+            isRefreshing = false
+        }
+    }
+
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        DashboardContent(
+            transactions = transactions,
+            totalIncome = totalIncome ?: 0.0,
+            totalExpense = totalExpense ?: 0.0,
+            isLoading = isLoading,
+            onAddExpense = onAddExpense,
+            onViewAll = onViewAll
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DashboardContent(
+    transactions: List<Transaction>,
+    totalIncome: Double,
+    totalExpense: Double,
+    isLoading: Boolean,
+    onAddExpense: () -> Unit,
+    onViewAll: () -> Unit
+) {
+    val balance = totalIncome - totalExpense
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -79,7 +145,10 @@ fun DashboardScreen(onAddExpense: () -> Unit = {}) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                TotalBalanceCard(balance = "$4,250.00", trend = "+2.4% this week")
+                TotalBalanceCard(
+                    balance = String.format(Locale.getDefault(), "₹%.2f", balance),
+                    trend = "+2.4% this week"
+                )
             }
             
             item {
@@ -89,15 +158,25 @@ fun DashboardScreen(onAddExpense: () -> Unit = {}) {
                 ) {
                     SummarySmallCard(
                         modifier = Modifier.weight(1f),
-                        label = "Monthly Spent",
-                        value = "$1,120.40",
-                        iconBackground = MaterialTheme.colorScheme.secondaryContainer
+                        label = stringResource(R.string.monthly_spent),
+                        value = String.format(Locale.getDefault(), "₹%.2f", totalExpense),
+                        iconBackground = MaterialTheme.colorScheme.secondaryContainer,
+                        iconRes = R.drawable.ic_receipt
                     )
+                    
+                    val topCategoryGroup = transactions.filter { it.isExpense }
+                        .groupBy { it.category }
+                        .maxByOrNull { it.value.sumOf { t -> t.amount } }
+                    
+                    val topCategoryName = topCategoryGroup?.key ?: "None"
+                    val topCategoryIcon = topCategoryGroup?.value?.firstOrNull()?.icon ?: R.drawable.ic_other
+                    
                     SummarySmallCard(
                         modifier = Modifier.weight(1f),
-                        label = "Top Category",
-                        value = "Dining",
-                        iconBackground = MaterialTheme.colorScheme.secondaryContainer
+                        label = stringResource(R.string.top_category),
+                        value = topCategoryName,
+                        iconBackground = MaterialTheme.colorScheme.secondaryContainer,
+                        iconRes = topCategoryIcon
                     )
                 }
             }
@@ -113,14 +192,60 @@ fun DashboardScreen(onAddExpense: () -> Unit = {}) {
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    TextButton(onClick = { }) {
+                    TextButton(onClick = onViewAll) {
                         Text(stringResource(R.string.view_all), style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
 
-            items(recentTransactions) { transaction ->
-                TransactionListItem(transaction)
+            if (isLoading) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryPurple)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.loading_your_transactions),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            } else {
+                if (transactions.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_receipt),
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.no_transactions_found),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.secondary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    items(transactions.take(3)) { transaction ->
+                        TransactionListItem(transaction)
+                    }
+                }
             }
             
             item { Spacer(modifier = Modifier.height(80.dp)) }
@@ -169,7 +294,7 @@ fun TotalBalanceCard(balance: String, trend: String) {
 }
 
 @Composable
-fun SummarySmallCard(modifier: Modifier, label: String, value: String, iconBackground: Color) {
+fun SummarySmallCard(modifier: Modifier, label: String, value: String, iconBackground: Color, iconRes: Int) {
     Card(
         modifier = modifier.height(120.dp),
         shape = RoundedCornerShape(20.dp),
@@ -183,10 +308,17 @@ fun SummarySmallCard(modifier: Modifier, label: String, value: String, iconBackg
         ) {
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(35.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(iconBackground)
-            )
+                    .background(iconBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
             Column {
                 Text(
                     text = label,
@@ -205,6 +337,10 @@ fun SummarySmallCard(modifier: Modifier, label: String, value: String, iconBackg
 
 @Composable
 fun TransactionListItem(transaction: Transaction) {
+    val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    val dateString = dateFormatter.format(Date(transaction.date))
+    val amountString = (if (transaction.isExpense) "-" else "+") + String.format(Locale.getDefault(), "₹%.2f", transaction.amount)
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -223,7 +359,12 @@ fun TransactionListItem(transaction: Transaction) {
                     .background(MaterialTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(transaction.icon)
+                Icon(
+                    painter = painterResource(id = transaction.icon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -233,13 +374,13 @@ fun TransactionListItem(transaction: Transaction) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = transaction.date,
+                    text = dateString,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
             Text(
-                text = transaction.amount,
+                text = amountString,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (transaction.isExpense) ErrorRed else SuccessGreen
@@ -248,25 +389,25 @@ fun TransactionListItem(transaction: Transaction) {
     }
 }
 
-data class Transaction(
-    val title: String,
-    val date: String,
-    val amount: String,
-    val isExpense: Boolean,
-    val icon: String
-)
-
+// For preview
 val recentTransactions = listOf(
-    Transaction("Starbucks", "Today, 08:45 AM", "-$5.50", true, "☕"),
-    Transaction("Uber", "Yesterday, 10:20 PM", "-$12.00", true, "🚗"),
-    Transaction("Rent", "Dec 1, 2023", "-$1,200.00", true, "🏠"),
-    Transaction("Whole Foods", "Nov 28, 2023", "-$84.20", true, "🛒")
+    Transaction(1, "Starbucks", 5.50, System.currentTimeMillis(), "Food", true, R.drawable.ic_food),
+    Transaction(2, "Uber", 12.00, System.currentTimeMillis() - 86400000, "Transport", true, R.drawable.ic_travel),
+    Transaction(3, "Rent", 1200.00, System.currentTimeMillis() - 172800000, "Bills", true, R.drawable.ic_home),
+    Transaction(4, "Whole Foods", 84.20, System.currentTimeMillis() - 259200000, "Groceries", true, R.drawable.ic_groceries)
 )
 
 @Preview
 @Composable
 private fun DashboardPreview() {
     ExpenseTrackerTheme {
-        DashboardScreen()
+        DashboardContent(
+            transactions = recentTransactions,
+            totalIncome = 5000.0,
+            totalExpense = 750.0,
+            isLoading = false,
+            onAddExpense = {},
+            onViewAll = {}
+        )
     }
 }
