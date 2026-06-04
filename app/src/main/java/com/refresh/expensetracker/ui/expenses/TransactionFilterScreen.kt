@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.refresh.expensetracker.R
+import com.refresh.expensetracker.ui.components.TransactionTypeToggle
 import com.refresh.expensetracker.ui.theme.ExpenseTrackerTheme
 import com.refresh.expensetracker.ui.theme.PrimaryPurple
 import java.text.SimpleDateFormat
@@ -26,12 +27,13 @@ import java.util.*
 
 data class FilterState(
     val selectedMonths: Set<String> = emptySet(),
-    val selectedCategories: Set<String> = emptySet()
+    val selectedCategories: Set<String> = emptySet(),
+    val isExpense: Boolean = true
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterScreen(
+fun TransactionFilterScreen(
     initialState: FilterState,
     onBack: () -> Unit,
     onApply: (FilterState) -> Unit
@@ -39,8 +41,13 @@ fun FilterScreen(
     var activeTab by remember { mutableStateOf("Months") }
     var selectedMonths by remember { mutableStateOf(initialState.selectedMonths) }
     var selectedCategories by remember { mutableStateOf(initialState.selectedCategories) }
+    var isExpense by remember { mutableStateOf(initialState.isExpense) }
 
-    val categories = listOf("Food", "Groceries", "Shopping", "Fuel", "Entertainment", "Travel", "Bills", "Finance", "Health", "Sports", "Family", "Other")
+    val expenseCategories = listOf("Housing", "Food", "Beverages", "Groceries", "Shopping", "Fuel", "Entertainment", "Travel", "Bills", "Finance", "Health", "Sports", "Family", "Pets", "Lending", "Other")
+    val incomeCategories = listOf("Salary", "Side Hustle", "Gift", "Rental", "Investment", "Other")
+    
+    val categories = if (isExpense) expenseCategories else incomeCategories
+
     val months = remember {
         val list = mutableListOf<String>()
         val cal = Calendar.getInstance()
@@ -55,7 +62,7 @@ fun FilterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.filters), fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.filters), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -74,68 +81,83 @@ fun FilterScreen(
         bottomBar = {
             Box(modifier = Modifier.padding(16.dp)) {
                 Button(
-                    onClick = { onApply(FilterState(selectedMonths, selectedCategories)) },
+                    onClick = { onApply(FilterState(selectedMonths, selectedCategories, isExpense)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
                 ) {
-                    Text(stringResource(R.string.apply), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.apply), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
     ) { innerPadding ->
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // Left Sidebar
-            Column(
+        Column(modifier = Modifier.padding(innerPadding)) {
+            Row(
                 modifier = Modifier
-                    .weight(0.35f)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                FilterTabItem(stringResource(R.string.months), activeTab == "Months") { activeTab = "Months" }
-                FilterTabItem(stringResource(R.string.categories), activeTab == "Categories") { activeTab = "Categories" }
-            }
-
-            // Right Content
-            LazyColumn(
-                modifier = Modifier
-                    .weight(0.65f)
-                    .fillMaxHeight()
-                    .padding(horizontal = 16.dp)
-            ) {
-                if (activeTab == "Months") {
-                    items(months) { month ->
-                        FilterOptionRow(
-                            label = month,
-                            isSelected = selectedMonths.contains(month),
-                            onSelect = {
-                                selectedMonths = if (selectedMonths.contains(month)) {
-                                    selectedMonths - month
-                                } else {
-                                    selectedMonths + month
-                                }
-                            }
-                        )
+                TransactionTypeToggle(
+                    isExpense = isExpense,
+                    onTypeChange = { 
+                        isExpense = it 
+                        selectedCategories = emptySet() // Reset categories when switching type
                     }
-                } else {
-                    items(categories) { category ->
-                        FilterOptionRow(
-                            label = category,
-                            isSelected = selectedCategories.contains(category),
-                            onSelect = {
-                                selectedCategories = if (selectedCategories.contains(category)) {
-                                    selectedCategories - category
-                                } else {
-                                    selectedCategories + category
+                )
+            }
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                // Left Sidebar
+                Column(
+                    modifier = Modifier
+                        .weight(0.35f)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                ) {
+                    FilterTabItem(stringResource(R.string.months), activeTab == "Months") { activeTab = "Months" }
+                    FilterTabItem(stringResource(R.string.categories), activeTab == "Categories") { activeTab = "Categories" }
+                }
+
+                // Right Content
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(0.65f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    if (activeTab == "Months") {
+                        items(months) { month ->
+                            FilterOptionRow(
+                                label = month,
+                                isSelected = selectedMonths.contains(month),
+                                onSelect = {
+                                    selectedMonths = if (selectedMonths.contains(month)) {
+                                        selectedMonths - month
+                                    } else {
+                                        selectedMonths + month
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
+                    } else {
+                        items(categories) { category ->
+                            FilterOptionRow(
+                                label = category,
+                                isSelected = selectedCategories.contains(category),
+                                onSelect = {
+                                    selectedCategories = if (selectedCategories.contains(category)) {
+                                        selectedCategories - category
+                                    } else {
+                                        selectedCategories + category
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -183,9 +205,9 @@ fun FilterOptionRow(label: String, isSelected: Boolean, onSelect: () -> Unit) {
 
 @Preview
 @Composable
-fun FilterScreenPreview() {
+fun TransactionFilterScreenPreview() {
     ExpenseTrackerTheme {
-        FilterScreen(
+        TransactionFilterScreen(
             initialState = FilterState(),
             onBack = { },
             onApply = { }

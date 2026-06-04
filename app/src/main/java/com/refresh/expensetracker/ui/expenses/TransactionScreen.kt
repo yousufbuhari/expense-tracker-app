@@ -14,10 +14,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.refresh.expensetracker.R
+import com.refresh.expensetracker.ui.components.TransactionTypeToggle
 import com.refresh.expensetracker.ui.dashboard.TransactionListItem
-import com.refresh.expensetracker.ui.dashboard.TransactionViewModel
+import com.refresh.expensetracker.ui.viewmodel.TransactionViewModel
 import com.refresh.expensetracker.ui.theme.PrimaryPurple
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -25,7 +27,7 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpensesScreen(
+fun TransactionScreen(
     onBack: () -> Unit = {},
     viewModel: TransactionViewModel = viewModel()
 ) {
@@ -46,11 +48,12 @@ fun ExpensesScreen(
         val monthStr = fmt.format(Date(transaction.date))
         val monthMatch = filterState.selectedMonths.isEmpty() || filterState.selectedMonths.contains(monthStr)
         val categoryMatch = filterState.selectedCategories.isEmpty() || filterState.selectedCategories.contains(transaction.category)
-        monthMatch && categoryMatch
+        val typeMatch = transaction.isExpense == filterState.isExpense
+        monthMatch && categoryMatch && typeMatch
     }
 
     if (showFilters) {
-        FilterScreen(
+        TransactionFilterScreen(
             initialState = filterState,
             onBack = { showFilters = false },
             onApply = { 
@@ -62,7 +65,7 @@ fun ExpensesScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("All Transactions", fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.all_transactions), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -82,6 +85,19 @@ fun ExpensesScreen(
             }
         ) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    TransactionTypeToggle(
+                        isExpense = filterState.isExpense,
+                        onTypeChange = { 
+                            filterState = filterState.copy(isExpense = it, selectedCategories = emptySet()) 
+                        }
+                    )
+                }
+
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {

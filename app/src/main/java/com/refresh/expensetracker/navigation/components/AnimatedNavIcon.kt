@@ -67,7 +67,7 @@ fun AnimatedNavIcon(
         painter = painterResource(destination.icon),
         contentDescription = destination.label,
         modifier = Modifier
-            .size(26.dp)
+            .size(22.dp)
             .graphicsLayer {
                 this.translationY = translationY.value
                 this.scaleX = scale.value

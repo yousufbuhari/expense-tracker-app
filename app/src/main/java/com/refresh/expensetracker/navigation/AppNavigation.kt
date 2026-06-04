@@ -17,9 +17,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.refresh.expensetracker.navigation.components.AnimatedNavIcon
 import com.refresh.expensetracker.navigation.components.AnimatedNavLabel
-import com.refresh.expensetracker.ui.dashboard.AddExpenseScreen
+import com.refresh.expensetracker.ui.addtransaction.AddTransactionScreen
 import com.refresh.expensetracker.ui.dashboard.DashboardScreen
-import com.refresh.expensetracker.ui.expenses.ExpensesScreen
+import com.refresh.expensetracker.ui.expenses.TransactionScreen
 import com.refresh.expensetracker.ui.theme.NavBgDark
 import com.refresh.expensetracker.ui.theme.NavBgLight
 import com.refresh.expensetracker.ui.theme.NavSelectedBgDark
@@ -33,24 +33,24 @@ import com.refresh.expensetracker.ui.theme.NavUnselectedContentLight
 @Composable
 fun ExpenseTrackerApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.DASHBOARD) }
-    var showAddExpense by rememberSaveable { mutableStateOf(false) }
+    var showAddTransaction by rememberSaveable { mutableStateOf(false) }
     val isDarkTheme = isSystemInDarkTheme()
 
-    BackHandler(enabled = showAddExpense || currentDestination != AppDestinations.DASHBOARD) {
-        if (showAddExpense) {
-            showAddExpense = false
+    BackHandler(enabled = showAddTransaction || currentDestination != AppDestinations.DASHBOARD) {
+        if (showAddTransaction) {
+            showAddTransaction = false
         } else {
             currentDestination = AppDestinations.DASHBOARD
         }
     }
 
     Crossfade(
-        targetState = showAddExpense,
+        targetState = showAddTransaction,
         animationSpec = tween(150),
         label = "ScreenTransition"
-    ) { targetShowAddExpense ->
-        if (targetShowAddExpense) {
-            AddExpenseScreen(onClose = { showAddExpense = false })
+    ) { targetShowAddTransaction ->
+        if (targetShowAddTransaction) {
+            AddTransactionScreen(onClose = { showAddTransaction = false })
         } else {
             val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
                 navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -99,10 +99,10 @@ fun ExpenseTrackerApp() {
             ) {
                 when (currentDestination) {
                     AppDestinations.DASHBOARD -> DashboardScreen(
-                        onAddExpense = { showAddExpense = true },
-                        onViewAll = { currentDestination = AppDestinations.EXPENSES }
+                        onAddTransaction = { showAddTransaction = true },
+                        onViewAll = { currentDestination = AppDestinations.TRANSACTION }
                     )
-                    AppDestinations.EXPENSES -> ExpensesScreen(
+                    AppDestinations.TRANSACTION -> TransactionScreen(
                         onBack = { currentDestination = AppDestinations.DASHBOARD }
                     )
                     AppDestinations.STATS -> Text("Stats Screen")

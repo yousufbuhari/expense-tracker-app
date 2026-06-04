@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.refresh.expensetracker.ui.viewmodel.TransactionViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
@@ -42,7 +43,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onAddExpense: () -> Unit = {},
+    onAddTransaction: () -> Unit = {},
     onViewAll: () -> Unit = {},
     viewModel: TransactionViewModel = viewModel()
 ) {
@@ -77,7 +78,7 @@ fun DashboardScreen(
             totalIncome = totalIncome ?: 0.0,
             totalExpense = totalExpense ?: 0.0,
             isLoading = isLoading,
-            onAddExpense = onAddExpense,
+            onAddTransaction = onAddTransaction,
             onViewAll = onViewAll
         )
     }
@@ -90,7 +91,7 @@ fun DashboardContent(
     totalIncome: Double,
     totalExpense: Double,
     isLoading: Boolean,
-    onAddExpense: () -> Unit,
+    onAddTransaction: () -> Unit,
     onViewAll: () -> Unit
 ) {
     val balance = totalIncome - totalExpense
@@ -127,7 +128,7 @@ fun DashboardContent(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddExpense,
+                onClick = onAddTransaction,
                 containerColor = PrimaryPurple,
                 contentColor = Color.White,
                 shape = CircleShape
@@ -145,10 +146,7 @@ fun DashboardContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                TotalBalanceCard(
-                    balance = String.format(Locale.getDefault(), "₹%.2f", balance),
-                    trend = "+2.4% this week"
-                )
+                TotalBalanceCard(balanceValue = balance)
             }
             
             item {
@@ -188,7 +186,7 @@ fun DashboardContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.recent_expenses),
+                        text = stringResource(R.string.recent_transactions),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -254,7 +252,12 @@ fun DashboardContent(
 }
 
 @Composable
-fun TotalBalanceCard(balance: String, trend: String) {
+fun TotalBalanceCard(balanceValue: Double) {
+    val isPositive = balanceValue >= 0
+    val trendText = if (isPositive) "+2.4% this week" else "-1.2% this week"
+    val trendColor = if (isPositive) SuccessGreen else ErrorRed
+    val trendIcon = if (isPositive) R.drawable.ic_increase else R.drawable.ic_decreasing
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -269,23 +272,30 @@ fun TotalBalanceCard(balance: String, trend: String) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "TOTAL BALANCE",
+                text = stringResource(R.string.total_balance),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.7f),
                 letterSpacing = 1.sp
             )
             Text(
-                text = balance,
+                text = String.format(Locale.getDefault(), "₹%.2f", balanceValue),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = trendIcon),
+                    contentDescription = null,
+                    tint = trendColor,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "📈 $trend",
+                    text = trendText,
                     style = MaterialTheme.typography.labelMedium,
-                    color = SuccessGreen,
+                    color = trendColor,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -371,6 +381,7 @@ fun TransactionListItem(transaction: Transaction) {
                 Text(
                     text = transaction.title,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
@@ -406,7 +417,7 @@ private fun DashboardPreview() {
             totalIncome = 5000.0,
             totalExpense = 750.0,
             isLoading = false,
-            onAddExpense = {},
+            onAddTransaction = {},
             onViewAll = {}
         )
     }

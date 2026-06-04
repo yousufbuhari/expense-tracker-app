@@ -1,19 +1,14 @@
-package com.refresh.expensetracker.ui.dashboard
+package com.refresh.expensetracker.ui.addtransaction
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,17 +16,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.graphics.SolidColor
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -40,13 +33,33 @@ import com.refresh.expensetracker.ui.theme.PrimaryPurple
 import com.refresh.expensetracker.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.refresh.expensetracker.data.Transaction
+import com.refresh.expensetracker.ui.components.CategoryGrid
+import com.refresh.expensetracker.ui.components.CompactCalendar
+import com.refresh.expensetracker.ui.components.TransactionTypeToggle
+import com.refresh.expensetracker.ui.viewmodel.TransactionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel = viewModel()) {
+fun AddTransactionScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel = viewModel()) {
+    AddTransactionContent(
+        onClose = onClose,
+        onSaveExpense = { transaction ->
+            viewModel.insertTransaction(transaction)
+            onClose()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddTransactionContent(
+    onClose: () -> Unit = {},
+    onSaveExpense: (Transaction) -> Unit = {}
+) {
+    var isExpense by remember { mutableStateOf(true) }
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Housing") }
+    var selectedCategory by remember { mutableStateOf(if (isExpense) "Housing" else "Salary") }
 
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
@@ -58,6 +71,9 @@ fun AddExpenseScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel =
     val timeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
 
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val amountErrorMessage = stringResource(R.string.amount_error)
 
     if (showDatePicker) {
         AlertDialog(
@@ -182,13 +198,87 @@ fun AddExpenseScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel =
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.add_expense), fontWeight = FontWeight.Bold) },
+                title = { Text(if (isExpense) stringResource(R.string.add_expense) else stringResource(R.string.add_income), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                Button(
+                    onClick = {
+                        val amountValue = amount.toDoubleOrNull() ?: 0.0
+                        if (amountValue > 0) {
+                            val calendar = Calendar.getInstance().apply {
+                                timeInMillis = selectedDate.timeInMillis
+                                set(Calendar.HOUR_OF_DAY, selectedTime.get(Calendar.HOUR_OF_DAY))
+                                set(Calendar.MINUTE, selectedTime.get(Calendar.MINUTE))
+                            }
+
+                            val icon = if (isExpense) {
+                                when (selectedCategory) {
+                                    "Housing" -> R.drawable.ic_home
+                                    "Food" -> R.drawable.ic_food
+                                    "Beverages" -> R.drawable.ic_beverages
+                                    "Groceries" -> R.drawable.ic_groceries
+                                    "Shopping" -> R.drawable.ic_shop
+                                    "Fuel" -> R.drawable.ic_fuel
+                                    "Entertainment" -> R.drawable.ic_movies
+                                    "Travel" -> R.drawable.ic_travel
+                                    "Bills" -> R.drawable.ic_bills
+                                    "Finance" -> R.drawable.ic_rupee
+                                    "Health" -> R.drawable.ic_health
+                                    "Sports" -> R.drawable.ic_sports
+                                    "Family" -> R.drawable.ic_family
+                                    "Pets" -> R.drawable.ic_pets
+                                    "Lending" -> R.drawable.ic_lending
+                                    else -> R.drawable.ic_other
+                                }
+                            } else {
+                                when (selectedCategory) {
+                                    "Salary" -> R.drawable.ic_salary
+                                    "Side Hustle" -> R.drawable.ic_side_hustle
+                                    "Gift" -> R.drawable.ic_gift
+                                    "Rental" -> R.drawable.ic_rental
+                                    "Investment" -> R.drawable.ic_increase
+                                    else -> R.drawable.ic_other
+                                }
+                            }
+
+                            val transaction = Transaction(
+                                title = description.ifBlank { selectedCategory },
+                                amount = amountValue,
+                                date = calendar.timeInMillis,
+                                category = selectedCategory,
+                                isExpense = isExpense,
+                                icon = icon
+                            )
+                            onSaveExpense(transaction)
+                        } else {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(amountErrorMessage)
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = if (isExpense) PrimaryPurple else MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(if (isExpense) stringResource(R.string.save_expense) else stringResource(R.string.save_income), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -199,6 +289,16 @@ fun AddExpenseScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel =
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TransactionTypeToggle(
+                isExpense = isExpense,
+                onTypeChange = {
+                    isExpense = it
+                    selectedCategory = if (it) "Housing" else "Salary"
+                }
+            )
+
             Spacer(modifier = Modifier.height(20.dp))
             
             Text(
@@ -253,50 +353,37 @@ fun AddExpenseScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel =
             
             HorizontalDivider(modifier = Modifier.width(200.dp), thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text(stringResource(R.string.what_did_you_spend_on)) },
-                placeholder = { Text(stringResource(R.string.e_g_weekly_groceries)) },
+                label = { Text(if (isExpense)(stringResource(R.string.what_did_you_spend_on)) else (stringResource(R.string.what_did_you_earn_from))) },
+                placeholder = { Text(if (isExpense)(stringResource(R.string.e_g_weekly_groceries)) else (stringResource(R.string.e_g_salary))) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
             
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text(
-                stringResource(R.string.category),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            
             Spacer(modifier = Modifier.height(12.dp))
-            
-            CategoryGrid(
-                modifier = Modifier.heightIn(max = 400.dp),
-                selectedCategory = selectedCategory
-            ) { selectedCategory = it }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedCard(
+                Card(
                     modifier = Modifier
                         .weight(1f)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { showDatePicker = true },
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
                 ) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painter = painterResource(R.drawable.ic_calendar),
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         val isToday = Calendar.getInstance().let {
@@ -308,257 +395,71 @@ fun AddExpenseScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel =
                         } else {
                             dateFormatter.format(selectedDate.time)
                         }
-                        Text(dateText, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            dateText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-                OutlinedCard(
+                Card(
                     modifier = Modifier
                         .weight(1f)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { showTimePicker = true },
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
                 ) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painter = painterResource(R.drawable.ic_clock), contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(timeFormatter.format(selectedTime.time), style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    val amountValue = amount.toDoubleOrNull() ?: 0.0
-                    if (description.isNotBlank() && amountValue > 0) {
-                        val calendar = Calendar.getInstance().apply {
-                            timeInMillis = selectedDate.timeInMillis
-                            set(Calendar.HOUR_OF_DAY, selectedTime.get(Calendar.HOUR_OF_DAY))
-                            set(Calendar.MINUTE, selectedTime.get(Calendar.MINUTE))
-                        }
-                        
-                        val icon = when (selectedCategory) {
-                            "Housing" -> R.drawable.ic_home
-                            "Food" -> R.drawable.ic_food
-                            "Groceries" -> R.drawable.ic_groceries
-                            "Shopping" -> R.drawable.ic_shop
-                            "Fuel" -> R.drawable.ic_fuel
-                            "Entertainment" -> R.drawable.ic_movies
-                            "Travel" -> R.drawable.ic_travel
-                            "Bills" -> R.drawable.ic_bills
-                            "Finance" -> R.drawable.ic_rupee
-                            "Health" -> R.drawable.ic_health
-                            "Sports" -> R.drawable.ic_sports
-                            "Family" -> R.drawable.ic_family
-                            else -> R.drawable.ic_other
-                        }
-
-                        val transaction = Transaction(
-                            title = description,
-                            amount = amountValue,
-                            date = calendar.timeInMillis,
-                            category = selectedCategory,
-                            isExpense = true,
-                            icon = icon
+                        Icon(
+                            painter = painterResource(R.drawable.ic_clock),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        viewModel.insertTransaction(transaction)
-                        onClose()
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            timeFormatter.format(selectedTime.time),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(15.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
-            ) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.save_expense), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-@Composable
-fun CategoryGrid(
-    modifier: Modifier = Modifier,
-    selectedCategory: String,
-    onCategorySelected: (String) -> Unit
-) {
-    val categories = remember {
-        listOf(
-            CategoryItem("Housing", R.drawable.ic_home),
-            CategoryItem("Food", R.drawable.ic_food),
-            CategoryItem("Groceries", R.drawable.ic_groceries),
-            CategoryItem("Shopping", R.drawable.ic_shop),
-            CategoryItem("Fuel", R.drawable.ic_fuel),
-            CategoryItem("Entertainment", R.drawable.ic_movies),
-            CategoryItem("Travel", R.drawable.ic_travel),
-            CategoryItem("Bills", R.drawable.ic_bills),
-            CategoryItem("Finance", R.drawable.ic_rupee),
-            CategoryItem("Health", R.drawable.ic_health),
-            CategoryItem("Sports", R.drawable.ic_sports),
-            CategoryItem("Family", R.drawable.ic_family),
-            CategoryItem("Other", R.drawable.ic_other)
-        )
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(4),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = modifier
-    ) {
-        items(categories) { category ->
-            val isSelected = category.name == selectedCategory
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) { onCategorySelected(category.name) }
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(55.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer)
-                        .then(
-                            if (isSelected) Modifier.border(
-                                2.dp,
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(12.dp)
-                            ) else Modifier
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = category.iconRes),
-                        contentDescription = category.name,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
-                Spacer(modifier = Modifier.height(3.dp))
-                Text(
-                    category.name,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
-        }
-    }
-}
 
-@Composable
-fun CompactCalendar(
-    selectedDate: Calendar,
-    onDateSelected: (Calendar) -> Unit
-) {
-    var currentMonth by remember { mutableStateOf(selectedDate.clone() as Calendar) }
-    
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = {
-                currentMonth = (currentMonth.clone() as Calendar).apply { add(Calendar.MONTH, -1) }
-            }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
-            }
-            
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
-                text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(currentMonth.time),
+                stringResource(R.string.category),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             
-            IconButton(onClick = {
-                currentMonth = (currentMonth.clone() as Calendar).apply { add(Calendar.MONTH, 1) }
-            }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Row(modifier = Modifier.fillMaxWidth()) {
-            listOf("S", "M", "T", "W", "T", "F", "S").forEach { day ->
-                Text(
-                    text = day,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            CategoryGrid(
+                selectedCategory = selectedCategory,
+                isExpense = isExpense,
+                onCategorySelected = { selectedCategory = it },
+                modifier = Modifier.heightIn(max = 400.dp)
+            )
 
-        val calendar = (currentMonth.clone() as Calendar).apply { 
-            set(Calendar.DAY_OF_MONTH, 1)
-        }
-        val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-        val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-        val prevDays = firstDayOfWeek - 1
-        
-        Column {
-            for (i in 0 until 6) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    for (j in 0 until 7) {
-                        val cellIndex = i * 7 + j
-                        val day = cellIndex - prevDays + 1
-                        if (day in 1..daysInMonth) {
-                            val isSelected = selectedDate.get(Calendar.YEAR) == currentMonth.get(Calendar.YEAR) &&
-                                    selectedDate.get(Calendar.MONTH) == currentMonth.get(Calendar.MONTH) &&
-                                    selectedDate.get(Calendar.DAY_OF_MONTH) == day
-                            
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1f)
-                                    .padding(2.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) {
-                                        val newDate = (currentMonth.clone() as Calendar).apply {
-                                            set(Calendar.YEAR, currentMonth.get(Calendar.YEAR))
-                                            set(Calendar.MONTH, currentMonth.get(Calendar.MONTH))
-                                            set(Calendar.DAY_OF_MONTH, day)
-                                        }
-                                        onDateSelected(newDate)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = day.toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        } else {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
-data class CategoryItem(val name: String, val iconRes: Int)
-
 @Preview
 @Composable
-fun AddExpensePreview() {
+fun AddTransactionPreview() {
     ExpenseTrackerTheme {
-        AddExpenseScreen()
+        AddTransactionContent()
     }
 }

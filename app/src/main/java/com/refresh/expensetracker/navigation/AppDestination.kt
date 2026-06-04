@@ -7,7 +7,7 @@ enum class AppDestinations(
     val icon: Int,
 ) {
     DASHBOARD("Dashboard", R.drawable.ic_dashboard),
-    EXPENSES("Expenses", R.drawable.ic_receipt),
+    TRANSACTION("Transactions", R.drawable.ic_receipt),
     STATS("Stats", R.drawable.ic_stats),
     SETTINGS("Settings", R.drawable.ic_settings),
 }
