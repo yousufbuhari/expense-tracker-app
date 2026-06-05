@@ -26,6 +26,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.refresh.expensetracker.R
+import com.refresh.expensetracker.data.Transaction
+import com.refresh.expensetracker.ui.theme.ErrorRed
+import com.refresh.expensetracker.ui.theme.SuccessGreen
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -117,10 +120,13 @@ fun CategoryGrid(
         } else {
             listOf(
                 CategoryItem("Salary", R.drawable.ic_salary),
-                CategoryItem("Side Hustle", R.drawable.ic_side_hustle),
-                CategoryItem("Gift", R.drawable.ic_gift),
+                CategoryItem("Freelance", R.drawable.ic_freelance),
+                CategoryItem("Business", R.drawable.ic_business),
+                CategoryItem("Investment", R.drawable.ic_investment),
                 CategoryItem("Rental", R.drawable.ic_rental),
-                CategoryItem("Investment", R.drawable.ic_increase),
+                CategoryItem("Bonus", R.drawable.ic_bonus),
+                CategoryItem("Gift", R.drawable.ic_gift),
+                CategoryItem("Refund", R.drawable.ic_refund),
                 CategoryItem("Other", R.drawable.ic_other)
             )
         }
@@ -274,3 +280,58 @@ fun CompactCalendar(
         }
     }
 }
+
+@Composable
+fun TransactionListItem(transaction: Transaction) {
+    val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    val dateString = dateFormatter.format(Date(transaction.date))
+    val amountString = (if (transaction.isExpense) "-" else "+") + String.format(Locale.getDefault(), "₹%.2f", transaction.amount)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = transaction.icon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = transaction.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = dateString,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Text(
+                text = amountString,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (transaction.isExpense) ErrorRed else SuccessGreen
+            )
+        }
+    }
+}
+

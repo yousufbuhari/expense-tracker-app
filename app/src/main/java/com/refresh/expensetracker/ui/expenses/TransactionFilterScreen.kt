@@ -44,8 +44,7 @@ fun TransactionFilterScreen(
     var isExpense by remember { mutableStateOf(initialState.isExpense) }
 
     val expenseCategories = listOf("Housing", "Food", "Beverages", "Groceries", "Shopping", "Fuel", "Entertainment", "Travel", "Bills", "Finance", "Health", "Sports", "Family", "Pets", "Lending", "Other")
-    val incomeCategories = listOf("Salary", "Side Hustle", "Gift", "Rental", "Investment", "Other")
-    
+    val incomeCategories = listOf("Salary", "Freelance", "Business", "Investment", "Rental", "Bonus", "Gift", "Refund", "Other")
     val categories = if (isExpense) expenseCategories else incomeCategories
 
     val months = remember {

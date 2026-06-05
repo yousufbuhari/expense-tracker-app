@@ -246,10 +246,14 @@ fun AddTransactionContent(
                             } else {
                                 when (selectedCategory) {
                                     "Salary" -> R.drawable.ic_salary
-                                    "Side Hustle" -> R.drawable.ic_side_hustle
-                                    "Gift" -> R.drawable.ic_gift
+                                    "Freelance" -> R.drawable.ic_freelance
+                                    "Business" -> R.drawable.ic_business
+                                    "Investment" -> R.drawable.ic_investment
                                     "Rental" -> R.drawable.ic_rental
-                                    "Investment" -> R.drawable.ic_increase
+                                    "Bonus" -> R.drawable.ic_bonus
+                                    "Gift" -> R.drawable.ic_gift
+                                    "Refund" -> R.drawable.ic_refund
+                                    "Other" -> R.drawable.ic_other
                                     else -> R.drawable.ic_other
                                 }
                             }
@@ -398,7 +402,7 @@ fun AddTransactionContent(
                         Text(
                             dateText,
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -425,7 +429,7 @@ fun AddTransactionContent(
                         Text(
                             timeFormatter.format(selectedTime.time),
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

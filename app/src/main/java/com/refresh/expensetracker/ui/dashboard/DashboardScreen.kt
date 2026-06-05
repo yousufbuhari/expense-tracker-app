@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -37,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import com.refresh.expensetracker.ui.components.TransactionListItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -50,7 +53,7 @@ fun DashboardScreen(
     val transactions by viewModel.allTransactions.collectAsState(initial = emptyList())
     val totalIncome by viewModel.totalIncome.collectAsState(initial = 0.0)
     val totalExpense by viewModel.totalExpense.collectAsState(initial = 0.0)
-    
+
     var isRefreshing by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
@@ -146,9 +149,13 @@ fun DashboardContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                TotalBalanceCard(balanceValue = balance)
+                TotalBalanceCard(
+                    balanceValue = balance,
+                    totalIncome = totalIncome,
+                    totalExpense = totalExpense
+                )
             }
-            
+
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -161,14 +168,14 @@ fun DashboardContent(
                         iconBackground = MaterialTheme.colorScheme.secondaryContainer,
                         iconRes = R.drawable.ic_receipt
                     )
-                    
+
                     val topCategoryGroup = transactions.filter { it.isExpense }
                         .groupBy { it.category }
                         .maxByOrNull { it.value.sumOf { t -> t.amount } }
-                    
+
                     val topCategoryName = topCategoryGroup?.key ?: "None"
                     val topCategoryIcon = topCategoryGroup?.value?.firstOrNull()?.icon ?: R.drawable.ic_other
-                    
+
                     SummarySmallCard(
                         modifier = Modifier.weight(1f),
                         label = stringResource(R.string.top_category),
@@ -245,19 +252,17 @@ fun DashboardContent(
                     }
                 }
             }
-            
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }
 
 @Composable
-fun TotalBalanceCard(balanceValue: Double) {
-    val isPositive = balanceValue >= 0
-    val trendText = if (isPositive) "+2.4% this week" else "-1.2% this week"
-    val trendColor = if (isPositive) SuccessGreen else ErrorRed
-    val trendIcon = if (isPositive) R.drawable.ic_increase else R.drawable.ic_decreasing
-
+fun TotalBalanceCard(
+    balanceValue: Double,
+    totalIncome: Double,
+    totalExpense: Double
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -269,35 +274,84 @@ fun TotalBalanceCard(balanceValue: Double) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = stringResource(R.string.total_balance),
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.7f),
-                letterSpacing = 1.sp
-            )
-            Text(
-                text = String.format(Locale.getDefault(), "₹%.2f", balanceValue),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(id = trendIcon),
-                    contentDescription = null,
-                    tint = trendColor,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
+            Column {
                 Text(
-                    text = trendText,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = trendColor,
-                    fontWeight = FontWeight.Medium
+                    text = stringResource(R.string.total_balance),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.7f),
+                    letterSpacing = 1.sp
                 )
+                Text(
+                    text = String.format(Locale.getDefault(), "₹%.2f", balanceValue),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Income Section
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowUpward,
+                            contentDescription = null,
+                            tint = SuccessGreen,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = String.format(Locale.getDefault(), "₹%.2f", totalIncome),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.income),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
+
+                // Divider
+                Box(
+                    modifier = Modifier
+                        .height(30.dp)
+                        .width(1.dp)
+                        .background(Color.White.copy(alpha = 0.2f))
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Expense Section
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDownward ,
+                            contentDescription = null,
+                            tint = ErrorRed,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = String.format(Locale.getDefault(), "₹%.2f", totalExpense),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.expenses),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
             }
         }
     }
@@ -341,61 +395,6 @@ fun SummarySmallCard(modifier: Modifier, label: String, value: String, iconBackg
                     fontWeight = FontWeight.Bold
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun TransactionListItem(transaction: Transaction) {
-    val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    val dateString = dateFormatter.format(Date(transaction.date))
-    val amountString = (if (transaction.isExpense) "-" else "+") + String.format(Locale.getDefault(), "₹%.2f", transaction.amount)
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = transaction.icon),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = transaction.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = dateString,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-            Text(
-                text = amountString,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (transaction.isExpense) ErrorRed else SuccessGreen
-            )
         }
     }
 }

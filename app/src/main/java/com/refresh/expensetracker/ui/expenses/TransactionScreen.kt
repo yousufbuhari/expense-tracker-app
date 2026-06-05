@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.refresh.expensetracker.R
+import com.refresh.expensetracker.ui.components.TransactionListItem
 import com.refresh.expensetracker.ui.components.TransactionTypeToggle
-import com.refresh.expensetracker.ui.dashboard.TransactionListItem
 import com.refresh.expensetracker.ui.viewmodel.TransactionViewModel
 import com.refresh.expensetracker.ui.theme.PrimaryPurple
 import kotlinx.coroutines.delay

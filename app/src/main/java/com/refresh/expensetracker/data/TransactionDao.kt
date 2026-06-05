@@ -22,4 +22,10 @@ interface TransactionDao {
 
     @Query("SELECT SUM(amount) FROM transactions WHERE isExpense = 1")
     fun getTotalExpense(): Flow<Double?>
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE isExpense = 0 AND date >= :startDate AND date <= :endDate")
+    fun getIncomeInRange(startDate: Long, endDate: Long): Flow<Double?>
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE isExpense = 1 AND date >= :startDate AND date <= :endDate")
+    fun getExpenseInRange(startDate: Long, endDate: Long): Flow<Double?>
 }

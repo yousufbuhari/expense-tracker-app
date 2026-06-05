@@ -15,6 +15,12 @@ class TransactionRepository(private val transactionDao: TransactionDao) {
     
     fun getTotalExpense(): Flow<Double?> = transactionDao.getTotalExpense()
 
+    fun getIncomeInRange(startDate: Long, endDate: Long): Flow<Double?> = 
+        transactionDao.getIncomeInRange(startDate, endDate)
+
+    fun getExpenseInRange(startDate: Long, endDate: Long): Flow<Double?> = 
+        transactionDao.getExpenseInRange(startDate, endDate)
+
     fun getFilteredTransactions(
         category: String?, 
         startDate: Long?, 
