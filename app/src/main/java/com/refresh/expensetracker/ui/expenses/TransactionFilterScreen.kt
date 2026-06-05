@@ -50,7 +50,7 @@ fun TransactionFilterScreen(
     val months = remember {
         val list = mutableListOf<String>()
         val cal = Calendar.getInstance()
-        val fmt = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+        val fmt = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
         for (i in 0 until 12) {
             list.add(fmt.format(cal.time))
             cal.add(Calendar.MONTH, -1)

@@ -1,6 +1,9 @@
 package com.refresh.expensetracker.ui.dashboard
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +51,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun DashboardScreen(
     onAddTransaction: () -> Unit = {},
+    onEditTransaction: (Int) -> Unit = {},
     onViewAll: () -> Unit = {},
     viewModel: TransactionViewModel = viewModel()
 ) {
@@ -82,6 +87,8 @@ fun DashboardScreen(
             totalExpense = totalExpense ?: 0.0,
             isLoading = isLoading,
             onAddTransaction = onAddTransaction,
+            onEditTransaction = onEditTransaction,
+            onDeleteTransaction = { viewModel.deleteTransaction(it) },
             onViewAll = onViewAll
         )
     }
@@ -95,6 +102,8 @@ fun DashboardContent(
     totalExpense: Double,
     isLoading: Boolean,
     onAddTransaction: () -> Unit,
+    onEditTransaction: (Int) -> Unit,
+    onDeleteTransaction: (Transaction) -> Unit,
     onViewAll: () -> Unit
 ) {
     val balance = totalIncome - totalExpense
@@ -119,22 +128,23 @@ fun DashboardContent(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.primary)
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 )
             )
         },
         floatingActionButton = {
+            val interactionSource = remember { MutableInteractionSource() }
+            val isPressed by interactionSource.collectIsPressedAsState()
+            val scale by animateFloatAsState(if (isPressed) 0.85f else 1f, label = "FABScale")
+
             FloatingActionButton(
                 onClick = onAddTransaction,
                 containerColor = PrimaryPurple,
                 contentColor = Color.White,
-                shape = CircleShape
+                shape = CircleShape,
+                interactionSource = interactionSource,
+                modifier = Modifier.graphicsLayer(scaleX = scale, scaleY = scale)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Expense")
             }
@@ -248,7 +258,11 @@ fun DashboardContent(
                     }
                 } else {
                     items(transactions.take(3)) { transaction ->
-                        TransactionListItem(transaction)
+                        TransactionListItem(
+                            transaction = transaction,
+                            onEdit = { onEditTransaction(it.id) },
+                            onDelete = { onDeleteTransaction(it) }
+                        )
                     }
                 }
             }
@@ -417,6 +431,8 @@ private fun DashboardPreview() {
             totalExpense = 750.0,
             isLoading = false,
             onAddTransaction = {},
+            onEditTransaction = {},
+            onDeleteTransaction = {},
             onViewAll = {}
         )
     }

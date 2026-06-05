@@ -15,6 +15,7 @@ val TextSecondary = Color(0xFF6D6480)
 
 val SuccessGreen = Color(0xFF22C55E)
 val ErrorRed = Color(0xFFEF4444)
+val EditBlue = Color(0xFF4A90E2)
 
 val SecondaryPurpleContainer = Color(0xFFEFE7FF)
 val TertiaryPurpleContainer = Color(0xFFD6C2FF)
@@ -50,10 +51,10 @@ val NavUnselectedContentDark = Color(0xFF8D869C)
 
 val SuccessGreenDark = Color(0xFF4ADE80)
 val ErrorRedDark = Color(0xFFF87171)
+val EditBlueDark = Color(0xFF2E5B9A)
 
 // =====================================================
 // LEGACY / COMMON
 // =====================================================
 
-val Purple80 = Color(0xFFD7BEFF)
 val DeepPurple40 = Color(0xFF5F259F)

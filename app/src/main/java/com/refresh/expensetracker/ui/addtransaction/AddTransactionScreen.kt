@@ -36,15 +36,53 @@ import com.refresh.expensetracker.data.Transaction
 import com.refresh.expensetracker.ui.components.CategoryGrid
 import com.refresh.expensetracker.ui.components.CompactCalendar
 import com.refresh.expensetracker.ui.components.TransactionTypeToggle
+import com.refresh.expensetracker.ui.components.getCategoryIcon
 import com.refresh.expensetracker.ui.viewmodel.TransactionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTransactionScreen(onClose: () -> Unit = {}, viewModel: TransactionViewModel = viewModel()) {
+fun AddTransactionScreen(
+    transactionId: Int? = null,
+    onClose: () -> Unit = {},
+    viewModel: TransactionViewModel = viewModel()
+) {
+    var isExpense by remember { mutableStateOf(true) }
+    var amount by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf(if (isExpense) "Housing" else "Salary") }
+    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
+    var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
+
+    LaunchedEffect(transactionId) {
+        if (transactionId != null) {
+            val transaction = viewModel.getTransactionById(transactionId)
+            transaction?.let {
+                isExpense = it.isExpense
+                amount = it.amount.toString()
+                description = it.description ?: it.title
+                selectedCategory = it.category
+                val cal = Calendar.getInstance().apply { timeInMillis = it.date }
+                selectedDate = cal.clone() as Calendar
+                selectedTime = cal.clone() as Calendar
+            }
+        }
+    }
+
     AddTransactionContent(
+        isExpenseInit = isExpense,
+        amountInit = amount,
+        descriptionInit = description,
+        selectedCategoryInit = selectedCategory,
+        selectedDateInit = selectedDate,
+        selectedTimeInit = selectedTime,
+        isEdit = transactionId != null,
         onClose = onClose,
         onSaveExpense = { transaction ->
-            viewModel.insertTransaction(transaction)
+            if (transactionId != null) {
+                viewModel.insertTransaction(transaction.copy(id = transactionId))
+            } else {
+                viewModel.insertTransaction(transaction)
+            }
             onClose()
         }
     )
@@ -53,16 +91,23 @@ fun AddTransactionScreen(onClose: () -> Unit = {}, viewModel: TransactionViewMod
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionContent(
+    isExpenseInit: Boolean = true,
+    amountInit: String = "",
+    descriptionInit: String = "",
+    selectedCategoryInit: String = "Housing",
+    selectedDateInit: Calendar = Calendar.getInstance(),
+    selectedTimeInit: Calendar = Calendar.getInstance(),
+    isEdit: Boolean = false,
     onClose: () -> Unit = {},
     onSaveExpense: (Transaction) -> Unit = {}
 ) {
-    var isExpense by remember { mutableStateOf(true) }
-    var amount by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(if (isExpense) "Housing" else "Salary") }
+    var isExpense by remember(isExpenseInit) { mutableStateOf(isExpenseInit) }
+    var amount by remember(amountInit) { mutableStateOf(amountInit) }
+    var description by remember(descriptionInit) { mutableStateOf(descriptionInit) }
+    var selectedCategory by remember(selectedCategoryInit) { mutableStateOf(selectedCategoryInit) }
 
-    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
-    var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
+    var selectedDate by remember(selectedDateInit) { mutableStateOf(selectedDateInit) }
+    var selectedTime by remember(selectedTimeInit) { mutableStateOf(selectedTimeInit) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -198,7 +243,14 @@ fun AddTransactionContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isExpense) stringResource(R.string.add_expense) else stringResource(R.string.add_income), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+                title = {
+                    val title = if (isEdit) {
+                        if (isExpense) stringResource(R.string.edit_expense) else stringResource(R.string.edit_income)
+                    } else {
+                        if (isExpense) stringResource(R.string.add_expense) else stringResource(R.string.add_income)
+                    }
+                    Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -224,47 +276,13 @@ fun AddTransactionContent(
                                 set(Calendar.MINUTE, selectedTime.get(Calendar.MINUTE))
                             }
 
-                            val icon = if (isExpense) {
-                                when (selectedCategory) {
-                                    "Housing" -> R.drawable.ic_home
-                                    "Food" -> R.drawable.ic_food
-                                    "Beverages" -> R.drawable.ic_beverages
-                                    "Groceries" -> R.drawable.ic_groceries
-                                    "Shopping" -> R.drawable.ic_shop
-                                    "Fuel" -> R.drawable.ic_fuel
-                                    "Entertainment" -> R.drawable.ic_movies
-                                    "Travel" -> R.drawable.ic_travel
-                                    "Bills" -> R.drawable.ic_bills
-                                    "Finance" -> R.drawable.ic_rupee
-                                    "Health" -> R.drawable.ic_health
-                                    "Sports" -> R.drawable.ic_sports
-                                    "Family" -> R.drawable.ic_family
-                                    "Pets" -> R.drawable.ic_pets
-                                    "Lending" -> R.drawable.ic_lending
-                                    else -> R.drawable.ic_other
-                                }
-                            } else {
-                                when (selectedCategory) {
-                                    "Salary" -> R.drawable.ic_salary
-                                    "Freelance" -> R.drawable.ic_freelance
-                                    "Business" -> R.drawable.ic_business
-                                    "Investment" -> R.drawable.ic_investment
-                                    "Rental" -> R.drawable.ic_rental
-                                    "Bonus" -> R.drawable.ic_bonus
-                                    "Gift" -> R.drawable.ic_gift
-                                    "Refund" -> R.drawable.ic_refund
-                                    "Other" -> R.drawable.ic_other
-                                    else -> R.drawable.ic_other
-                                }
-                            }
-
                             val transaction = Transaction(
                                 title = description.ifBlank { selectedCategory },
                                 amount = amountValue,
                                 date = calendar.timeInMillis,
                                 category = selectedCategory,
                                 isExpense = isExpense,
-                                icon = icon
+                                icon = getCategoryIcon(selectedCategory, isExpense)
                             )
                             onSaveExpense(transaction)
                         } else {
@@ -280,7 +298,12 @@ fun AddTransactionContent(
                     shape = RoundedCornerShape(15.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = if (isExpense) PrimaryPurple else MaterialTheme.colorScheme.primary)
                 ) {
-                    Text(if (isExpense) stringResource(R.string.save_expense) else stringResource(R.string.save_income), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    val buttonText = if (isEdit) {
+                        stringResource(R.string.update)
+                    } else {
+                        if (isExpense) stringResource(R.string.save_expense) else stringResource(R.string.save_income)
+                    }
+                    Text(buttonText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

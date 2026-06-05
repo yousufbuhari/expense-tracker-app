@@ -9,18 +9,6 @@
     <string name="e_g_weekly_groceries">e.g. Weekly Groceries</string>
     <string name="e_g_salary">e.g. Salary</string>
     <string name="category">Category</string>
-    <string name="food">Food</string>
-    <string name="groceries">Groceries</string>
-    <string name="shopping">Shopping</string>
-    <string name="fuel">Fuel</string>
-    <string name="entertainment">Entertainment</string>
-    <string name="travel">Travel</string>
-    <string name="bills">Bills</string>
-    <string name="finance">Finance</string>
-    <string name="health">Health</string>
-    <string name="sports">Sports</string>
-    <string name="family">Family</string>
-    <string name="other">Other</string>
     <string name="add_expense">Add Expense</string>
     <string name="_0_00">0.00</string>
     <string name="top_category">Top Category</string>
@@ -37,7 +25,12 @@
     <string name="expenses">Expenses</string>
     <string name="save_income">Save Income</string>
     <string name="add_income">Add Income</string>
-    <string name="all_transactions">All Transactions</string>
+    <string name="transactions_history">Transaction History</string>
     <string name="amount_error">Please enter an amount greater than 0</string>
     <string name="total_balance">TOTAL BALANCE</string>
+    <string name="update">Update</string>
+    <string name="edit_expense">Edit Expense</string>
+    <string name="edit_income">Edit Income</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
 </resources>

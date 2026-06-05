@@ -29,6 +29,7 @@ import java.util.*
 @Composable
 fun TransactionScreen(
     onBack: () -> Unit = {},
+    onEditTransaction: (Int) -> Unit = {},
     viewModel: TransactionViewModel = viewModel()
 ) {
     var showFilters by remember { mutableStateOf(false) }
@@ -42,14 +43,22 @@ fun TransactionScreen(
 
     val transactions by viewModel.allTransactions.collectAsState(initial = emptyList())
     
-    val fmt = remember { SimpleDateFormat("MMM yyyy", Locale.getDefault()) }
+    val fmt = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
 
-    val filteredTransactions = transactions.filter { transaction ->
-        val monthStr = fmt.format(Date(transaction.date))
-        val monthMatch = filterState.selectedMonths.isEmpty() || filterState.selectedMonths.contains(monthStr)
-        val categoryMatch = filterState.selectedCategories.isEmpty() || filterState.selectedCategories.contains(transaction.category)
-        val typeMatch = transaction.isExpense == filterState.isExpense
-        monthMatch && categoryMatch && typeMatch
+    val filteredTransactions = remember(transactions, filterState) {
+        transactions.filter { transaction ->
+            val monthStr = fmt.format(Date(transaction.date))
+            val monthMatch = filterState.selectedMonths.isEmpty() || filterState.selectedMonths.contains(monthStr)
+            val categoryMatch = filterState.selectedCategories.isEmpty() || filterState.selectedCategories.contains(transaction.category)
+            val typeMatch = transaction.isExpense == filterState.isExpense
+            monthMatch && categoryMatch && typeMatch
+        }
+    }
+
+    val groupedTransactions = remember(filteredTransactions) {
+        filteredTransactions
+            .sortedByDescending { it.date }
+            .groupBy { fmt.format(Date(it.date)) }
     }
 
     if (showFilters) {
@@ -65,7 +74,7 @@ fun TransactionScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(R.string.all_transactions), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.transactions_history), fontSize = 16.sp, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -136,10 +145,25 @@ fun TransactionScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        items(filteredTransactions) { transaction ->
-                            TransactionListItem(transaction)
+                        groupedTransactions.forEach { (month, transactionsInMonth) ->
+                            item(key = month) {
+                                Text(
+                                    text = month,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            items(transactionsInMonth, key = { it.id }) { transaction ->
+                                TransactionListItem(
+                                    transaction = transaction,
+                                    onEdit = { onEditTransaction(it.id) },
+                                    onDelete = { viewModel.deleteTransaction(it) }
+                                )
+                            }
                         }
                     }
                 }
