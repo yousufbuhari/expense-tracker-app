@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Expense Tracker</string>
+    <string name="app_name">MoneyMate</string>
     <string name="recent_transactions">Recent Transactions</string>
     <string name="view_all">View All</string>
     <string name="amount">AMOUNT</string>
@@ -33,4 +33,29 @@
     <string name="edit_income">Edit Income</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+    <string name="settings">Settings</string>
+    <string name="theme">Theme</string>
+    <string name="dark">Dark</string>
+    <string name="privacy">Privacy</string>
+    <string name="data_is_stored_locally_on_your_device">Data is stored locally on your device</string>
+    <string name="export_data">Export Data</string>
+    <string name="export_transactions_as_json_or_csv">Export transactions as JSON or CSV</string>
+    <string name="import_data">Import Data</string>
+    <string name="restore_transactions_from_backup">Restore transactions from backup</string>
+    <string name="clear_all_data">Clear All Data</string>
+    <string name="permanently_remove_all_records">Permanently remove all records</string>
+    <string name="currency">Currency</string>
+    <string name="inr">₹ INR</string>
+    <string name="language">Language</string>
+    <string name="english">English</string>
+    <string name="developer">Developer</string>
+    <string name="built_with_by_buhari">Built with ❤️ by Buhari</string>
+    <string name="app_version">App Version</string>
+    <string name="version_1_0_0">Version 1.0.0</string>
+    <string name="about">About</string>
+    <string name="data_management">Data Management</string>
+    <string name="preferences">Preferences</string>
+    <string name="appearance">Appearance</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="biometric_authentication">Biometric Authentication</string>
 </resources>

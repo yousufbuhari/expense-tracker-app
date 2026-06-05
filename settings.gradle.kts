@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Expense Tracker"
+rootProject.name = "MoneyMate"
 include(":app")
  
