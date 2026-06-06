@@ -65,7 +65,7 @@ fun AnimatedNavIcon(
 
     Icon(
         painter = painterResource(destination.icon),
-        contentDescription = destination.label,
+        contentDescription = destination.label.toString(),
         modifier = Modifier
             .size(22.dp)
             .graphicsLayer {

@@ -95,6 +95,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun updateLanguage(languageCode: String) {
+        viewModelScope.launch {
+            val updatedProfile = _userProfile.value.copy(language = languageCode)
+            userProfileRepository.updateProfile(updatedProfile)
+        }
+    }
+
     fun clearAllData(onComplete: () -> Unit) {
         viewModelScope.launch {
             repository.deleteAllTransactions()

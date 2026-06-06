@@ -78,7 +78,7 @@ fun TransactionScreen(
                     title = { Text(stringResource(R.string.transactions_history), fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -89,7 +89,7 @@ fun TransactionScreen(
                             val isFiltered = filterState.selectedMonths.isNotEmpty() || filterState.selectedCategories.isNotEmpty()
                             Icon(
                                 imageVector = Icons.Default.FilterList,
-                                contentDescription = "Filter",
+                                contentDescription = stringResource(R.string.filter),
                                 tint = if (isFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -140,7 +140,7 @@ fun TransactionScreen(
                             )
                             if (filterState.selectedMonths.isNotEmpty() || filterState.selectedCategories.isNotEmpty()) {
                                 TextButton(onClick = { filterState = FilterState() }) {
-                                    Text("Clear Filters")
+                                    Text(stringResource(R.string.clear_filters))
                                 }
                             }
                         }

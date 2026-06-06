@@ -38,13 +38,44 @@ fun TransactionFilterScreen(
     onBack: () -> Unit,
     onApply: (FilterState) -> Unit
 ) {
-    var activeTab by remember { mutableStateOf("Months") }
+    val monthsTab = "Months"
+    val categoriesTab = "Categories"
+    var activeTab by remember { mutableStateOf(monthsTab) }
     var selectedMonths by remember { mutableStateOf(initialState.selectedMonths) }
     var selectedCategories by remember { mutableStateOf(initialState.selectedCategories) }
     var isExpense by remember { mutableStateOf(initialState.isExpense) }
 
     val expenseCategories = listOf("Housing", "Food", "Beverages", "Groceries", "Shopping", "Fuel", "Entertainment", "Travel", "Bills", "Finance", "Health", "Sports", "Family", "Pets", "Lending", "Other")
     val incomeCategories = listOf("Salary", "Freelance", "Business", "Investment", "Rental", "Bonus", "Gift", "Refund", "Other")
+    
+    // Map internal names to string resources for display
+    val categoryDisplayNames = mapOf(
+        "Housing" to stringResource(R.string.cat_housing),
+        "Food" to stringResource(R.string.cat_food),
+        "Beverages" to stringResource(R.string.cat_beverages),
+        "Groceries" to stringResource(R.string.cat_groceries),
+        "Shopping" to stringResource(R.string.cat_shopping),
+        "Fuel" to stringResource(R.string.cat_fuel),
+        "Entertainment" to stringResource(R.string.cat_entertainment),
+        "Travel" to stringResource(R.string.cat_travel),
+        "Bills" to stringResource(R.string.cat_bills),
+        "Finance" to stringResource(R.string.cat_finance),
+        "Health" to stringResource(R.string.cat_health),
+        "Sports" to stringResource(R.string.cat_sports),
+        "Family" to stringResource(R.string.cat_family),
+        "Pets" to stringResource(R.string.cat_pets),
+        "Lending" to stringResource(R.string.cat_lending),
+        "Salary" to stringResource(R.string.cat_salary),
+        "Freelance" to stringResource(R.string.cat_freelance),
+        "Business" to stringResource(R.string.cat_business),
+        "Investment" to stringResource(R.string.cat_investment),
+        "Rental" to stringResource(R.string.cat_rental),
+        "Bonus" to stringResource(R.string.cat_bonus),
+        "Gift" to stringResource(R.string.cat_gift),
+        "Refund" to stringResource(R.string.cat_refund),
+        "Other" to stringResource(R.string.cat_other)
+    )
+
     val categories = if (isExpense) expenseCategories else incomeCategories
 
     val months = remember {
@@ -64,7 +95,7 @@ fun TransactionFilterScreen(
                 title = { Text(stringResource(R.string.filters), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -121,8 +152,8 @@ fun TransactionFilterScreen(
                         .fillMaxHeight()
                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
                 ) {
-                    FilterTabItem(stringResource(R.string.months), activeTab == "Months") { activeTab = "Months" }
-                    FilterTabItem(stringResource(R.string.categories), activeTab == "Categories") { activeTab = "Categories" }
+                    FilterTabItem(stringResource(R.string.months), activeTab == monthsTab) { activeTab = monthsTab }
+                    FilterTabItem(stringResource(R.string.categories), activeTab == categoriesTab) { activeTab = categoriesTab }
                 }
 
                 // Right Content
@@ -132,7 +163,7 @@ fun TransactionFilterScreen(
                         .fillMaxHeight()
                         .padding(horizontal = 16.dp)
                 ) {
-                    if (activeTab == "Months") {
+                    if (activeTab == monthsTab) {
                         items(months) { month ->
                             FilterOptionRow(
                                 label = month,
@@ -149,7 +180,7 @@ fun TransactionFilterScreen(
                     } else {
                         items(categories) { category ->
                             FilterOptionRow(
-                                label = category,
+                                label = categoryDisplayNames[category] ?: category,
                                 isSelected = selectedCategories.contains(category),
                                 onSelect = {
                                     selectedCategories = if (selectedCategories.contains(category)) {
