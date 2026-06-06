@@ -32,6 +32,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import com.buhari.moneymate.ui.theme.MoneyMateTheme
 import com.buhari.moneymate.ui.theme.PrimaryPurple
+import com.buhari.moneymate.ui.theme.LocalCurrency
+import com.buhari.moneymate.utils.CurrencyUtils
 import com.buhari.moneymate.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.buhari.moneymate.data.entity.Transaction
@@ -39,7 +41,6 @@ import com.buhari.moneymate.ui.components.CategoryGrid
 import com.buhari.moneymate.ui.components.CompactCalendar
 import com.buhari.moneymate.ui.components.TransactionTypeToggle
 import com.buhari.moneymate.ui.components.getCategoryIcon
-import com.buhari.moneymate.ui.components.getCategoryNameRes
 import com.buhari.moneymate.ui.viewmodel.TransactionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,12 +50,14 @@ fun AddTransactionScreen(
     onClose: () -> Unit = {},
     viewModel: TransactionViewModel = viewModel()
 ) {
+    val defaultCurrency = LocalCurrency.current
     var isExpense by remember { mutableStateOf(true) }
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf(if (isExpense) "Housing" else "Salary") }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
+    var selectedCurrency by remember { mutableStateOf(defaultCurrency) }
 
     LaunchedEffect(transactionId) {
         if (transactionId != null) {
@@ -64,6 +67,7 @@ fun AddTransactionScreen(
                 amount = it.amount.toString()
                 description = it.description ?: it.title
                 selectedCategory = it.category
+                selectedCurrency = it.currencyCode
                 val cal = Calendar.getInstance().apply { timeInMillis = it.date }
                 selectedDate = cal.clone() as Calendar
                 selectedTime = cal.clone() as Calendar
@@ -78,6 +82,7 @@ fun AddTransactionScreen(
         selectedCategoryInit = selectedCategory,
         selectedDateInit = selectedDate,
         selectedTimeInit = selectedTime,
+        selectedCurrencyInit = selectedCurrency,
         isEdit = transactionId != null,
         onClose = onClose,
         onSaveExpense = { transaction ->
@@ -101,6 +106,7 @@ fun AddTransactionContent(
     selectedCategoryInit: String = "Housing",
     selectedDateInit: Calendar = Calendar.getInstance(),
     selectedTimeInit: Calendar = Calendar.getInstance(),
+    selectedCurrencyInit: String = "INR",
     isEdit: Boolean = false,
     onClose: () -> Unit = {},
     onSaveExpense: (Transaction) -> Unit = {}
@@ -109,6 +115,7 @@ fun AddTransactionContent(
     var amount by remember(amountInit) { mutableStateOf(amountInit) }
     var description by remember(descriptionInit) { mutableStateOf(descriptionInit) }
     var selectedCategory by remember(selectedCategoryInit) { mutableStateOf(selectedCategoryInit) }
+    var selectedCurrency by remember(selectedCurrencyInit) { mutableStateOf(selectedCurrencyInit) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val res = context.resources
@@ -297,7 +304,8 @@ fun AddTransactionContent(
                                 date = calendar.timeInMillis,
                                 category = selectedCategory,
                                 isExpense = isExpense,
-                                icon = getCategoryIcon(selectedCategory, isExpense)
+                                icon = getCategoryIcon(selectedCategory, isExpense),
+                                currencyCode = selectedCurrency
                             )
                             onSaveExpense(transaction)
                         } else {
@@ -356,13 +364,17 @@ fun AddTransactionContent(
             )
             
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_rupee),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                Box(modifier = Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = CurrencyUtils.getSymbol(selectedCurrency),
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.width(5.dp))
                 BasicTextField(
                     value = amount,
                     onValueChange = {

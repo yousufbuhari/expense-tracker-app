@@ -19,9 +19,11 @@ import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -54,6 +56,7 @@ import coil3.compose.AsyncImage
 import com.buhari.moneymate.R
 import com.buhari.moneymate.data.entity.Transaction
 import com.buhari.moneymate.ui.theme.*
+import com.buhari.moneymate.utils.CurrencyUtils
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.launch
@@ -169,7 +172,7 @@ fun CategoryGrid(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier
     ) {
-        items(categories) { category ->
+        gridItems(categories) { category ->
             val isSelected = category.name == selectedCategory
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -414,7 +417,8 @@ fun TransactionListItem(
     val datePart = remember { SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(Date(transaction.date)) }
     val timePart = remember { SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(transaction.date)) }
     val dateString = "$datePart ${stringResource(R.string.at)} $timePart"
-    val amountString = (if (transaction.isExpense) "-" else "+") + stringResource(R.string.amount_format, transaction.amount)
+    
+    val amountString = (if (transaction.isExpense) "-" else "+") + CurrencyUtils.formatAmount(transaction.amount, transaction.currencyCode)
 
     val density = LocalDensity.current
     val actionWidth = 160.dp
@@ -702,7 +706,7 @@ fun ProfileCard(
             ) {
                 Surface(
                     shape = CircleShape,
-                    modifier = Modifier.size(68.dp),
+                    modifier = Modifier.size(70.dp),
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
                     shadowElevation = 4.dp
@@ -712,7 +716,7 @@ fun ProfileCard(
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_profile),
                                 contentDescription = null,
-                                modifier = Modifier.size(32.dp),
+                                modifier = Modifier.size(35.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         } else {
@@ -785,60 +789,69 @@ fun LanguageSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .height(450.dp)
             .padding(horizontal = 20.dp)
-            .padding(bottom = 32.dp)
             .navigationBarsPadding()
     ) {
         Text(
             text = stringResource(R.string.select_language),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 16.dp)
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(vertical = 16.dp)
         )
 
-        languages.forEach { (code, name, icon) ->
-            Surface(
-                onClick = { onLanguageSelected(code) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = if (currentLanguage == code) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            items(languages) { (code, name, icon) ->
+                Surface(
+                    onClick = { onLanguageSelected(code) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (currentLanguage == code) MaterialTheme.colorScheme.primaryContainer.copy(
+                        alpha = 0.4f
+                    ) else Color.Transparent
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier.size(40.dp)
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = icon,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = icon,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
+
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (currentLanguage == code) FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        RadioButton(
+                            selected = currentLanguage == code,
+                            onClick = { onLanguageSelected(code) }
+                        )
                     }
-
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (currentLanguage == code) FontWeight.Bold else FontWeight.Normal,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    RadioButton(
-                        selected = currentLanguage == code,
-                        onClick = { onLanguageSelected(code) }
-                    )
                 }
             }
-            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
@@ -1035,6 +1048,96 @@ fun EditProfileContent(
 }
 
 @Composable
+fun CurrencySelectionContent(
+    currentCurrency: String,
+    onCurrencySelected: (String) -> Unit
+) {
+    val currencies = listOf(
+        Triple("INR", stringResource(R.string.inr), "₹"),
+        Triple("USD", stringResource(R.string.usd), "$"),
+        Triple("EUR", stringResource(R.string.eur), "€"),
+        Triple("GBP", stringResource(R.string.gbp), "£"),
+        Triple("AED", stringResource(R.string.aed), "AED"),
+        Triple("SAR", stringResource(R.string.sar), "SAR"),
+        Triple("SGD", stringResource(R.string.sgd), "S$"),
+        Triple("AUD", stringResource(R.string.aud), "A$"),
+        Triple("CAD", stringResource(R.string.cad), "C$"),
+        Triple("JPY", stringResource(R.string.jpy), "¥"),
+        Triple("KWD", stringResource(R.string.kwd), "KWD"),
+        Triple("QAR", stringResource(R.string.qar), "QAR")
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(450.dp)
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding()
+    ) {
+        Text(
+            text = stringResource(R.string.select_currency),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(vertical = 16.dp)
+        )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            items(currencies) { (code, name, symbol) ->
+                Surface(
+                    onClick = { onCurrencySelected(code) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (currentCurrency == code) MaterialTheme.colorScheme.primaryContainer.copy(
+                        alpha = 0.4f
+                    ) else Color.Transparent
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = symbol,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (currentCurrency == code) FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        RadioButton(
+                            selected = currentCurrency == code,
+                            onClick = { onCurrencySelected(code) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ThemeSelectionContent(
     currentTheme: String,
     onThemeSelected: (String) -> Unit
@@ -1049,7 +1152,7 @@ fun ThemeSelectionContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .padding(vertical = 2.dp)
+            .padding(bottom = 20.dp)
             .navigationBarsPadding()
     ) {
         Text(
@@ -1070,7 +1173,7 @@ fun ThemeSelectionContent(
             ) {
                 Row(
                     modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween

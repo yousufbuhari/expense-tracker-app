@@ -102,6 +102,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun updateCurrency(currencyCode: String) {
+        viewModelScope.launch {
+            val updatedProfile = _userProfile.value.copy(currency = currencyCode)
+            userProfileRepository.updateProfile(updatedProfile)
+        }
+    }
+
     fun clearAllData(onComplete: () -> Unit) {
         viewModelScope.launch {
             repository.deleteAllTransactions()

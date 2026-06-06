@@ -25,9 +25,9 @@ interface TransactionDao {
     @Query("DELETE FROM transactions")
     suspend fun deleteAllTransactions()
 
-    @Query("SELECT SUM(amount) FROM transactions WHERE isExpense = 0 AND date >= :startDate AND date <= :endDate")
-    fun getMonthlyIncome(startDate: Long, endDate: Long): Flow<Double?>
+    @Query("SELECT SUM(amount) FROM transactions WHERE isExpense = 0 AND date >= :startDate AND date <= :endDate AND currencyCode = :currencyCode")
+    fun getMonthlyIncome(startDate: Long, endDate: Long, currencyCode: String): Flow<Double?>
 
-    @Query("SELECT SUM(amount) FROM transactions WHERE isExpense = 1 AND date >= :startDate AND date <= :endDate")
-    fun getMonthlyExpense(startDate: Long, endDate: Long): Flow<Double?>
+    @Query("SELECT SUM(amount) FROM transactions WHERE isExpense = 1 AND date >= :startDate AND date <= :endDate AND currencyCode = :currencyCode")
+    fun getMonthlyExpense(startDate: Long, endDate: Long, currencyCode: String): Flow<Double?>
 }

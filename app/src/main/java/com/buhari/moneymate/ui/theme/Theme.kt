@@ -12,6 +12,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -94,11 +95,14 @@ private val DarkColorScheme = darkColorScheme(
 // APP THEME
 // =====================================================
 
+val LocalCurrency = staticCompositionLocalOf { "INR" }
+
 @Composable
 fun MoneyMateTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     language: String = "en",
+    currency: String = "INR",
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -130,7 +134,8 @@ fun MoneyMateTheme(
         LocalDensity provides Density(
             density = LocalDensity.current.density,
             fontScale = 1.0f
-        )
+        ),
+        LocalCurrency provides currency
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

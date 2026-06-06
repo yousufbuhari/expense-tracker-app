@@ -9,5 +9,6 @@ data class UserProfile(
     val name: String = "User",
     val profileImage: String? = null,
     val theme: String = "System",
-    val language: String = "en"
+    val language: String = "en",
+    val currency: String = "INR"
 )

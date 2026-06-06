@@ -28,5 +28,7 @@ data class Transaction(
     @ColumnInfo(name = "icon")
     val icon: Int,
     @ColumnInfo(name = "description")
-    val description: String? = null
+    val description: String? = null,
+    @ColumnInfo(name = "currencyCode")
+    val currencyCode: String = "INR"
 )

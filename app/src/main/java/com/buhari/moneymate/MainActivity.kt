@@ -44,7 +44,11 @@ class MainActivity : ComponentActivity() {
                 else -> isSystemInDarkTheme()
             }
 
-            MoneyMateTheme(darkTheme = darkTheme, language = language) {
+            MoneyMateTheme(
+                darkTheme = darkTheme,
+                language = language,
+                currency = userProfile.currency
+            ) {
                 MoneyMateApp(language = language)
             }
         }

@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.buhari.moneymate.R
 import com.buhari.moneymate.ui.components.EditProfileContent
 import com.buhari.moneymate.ui.components.LanguageSelectionContent
+import com.buhari.moneymate.ui.components.CurrencySelectionContent
 import com.buhari.moneymate.ui.components.ProfileCard
 import com.buhari.moneymate.ui.components.SettingsItem
 import com.buhari.moneymate.ui.components.SettingsSection
@@ -41,6 +42,7 @@ fun SettingsScreen(
     var showProfileSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
     var showLanguageSheet by remember { mutableStateOf(false) }
+    var showCurrencySheet by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val res = context.resources
@@ -144,11 +146,26 @@ fun SettingsScreen(
 
             item {
                 SettingsSection(title = stringResource(R.string.preferences)) {
+                    val currencySubtitle = when (userProfile.currency) {
+                        "INR" -> stringResource(R.string.inr)
+                        "USD" -> stringResource(R.string.usd)
+                        "EUR" -> stringResource(R.string.eur)
+                        "GBP" -> stringResource(R.string.gbp)
+                        "AED" -> stringResource(R.string.aed)
+                        "SAR" -> stringResource(R.string.sar)
+                        "SGD" -> stringResource(R.string.sgd)
+                        "AUD" -> stringResource(R.string.aud)
+                        "CAD" -> stringResource(R.string.cad)
+                        "JPY" -> stringResource(R.string.jpy)
+                        "KWD" -> stringResource(R.string.kwd)
+                        "QAR" -> stringResource(R.string.qar)
+                        else -> userProfile.currency
+                    }
                     SettingsItem(
                         title = stringResource(R.string.currency),
-                        subtitle = stringResource(R.string.inr),
+                        subtitle = currencySubtitle,
                         icon = R.drawable.ic_rupee,
-                        onClick = { /* TODO: Open Currency Sheet */ }
+                        onClick = { showCurrencySheet = true }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -360,6 +377,24 @@ fun SettingsScreen(
                 onLanguageSelected = { languageCode ->
                     viewModel.updateLanguage(languageCode)
                     showLanguageSheet = false
+                }
+            )
+        }
+    }
+
+    if (showCurrencySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCurrencySheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            CurrencySelectionContent(
+                currentCurrency = userProfile.currency,
+                onCurrencySelected = { currencyCode ->
+                    viewModel.updateCurrency(currencyCode)
+                    showCurrencySheet = false
                 }
             )
         }

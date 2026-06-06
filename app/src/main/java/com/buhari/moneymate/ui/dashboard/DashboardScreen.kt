@@ -31,6 +31,8 @@ import com.buhari.moneymate.ui.theme.MoneyMateTheme
 import com.buhari.moneymate.ui.theme.SuccessGreen
 import com.buhari.moneymate.ui.theme.ErrorRed
 import com.buhari.moneymate.ui.theme.PrimaryPurple
+import com.buhari.moneymate.ui.theme.LocalCurrency
+import com.buhari.moneymate.utils.CurrencyUtils
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.buhari.moneymate.ui.viewmodel.TransactionViewModel
@@ -130,7 +132,7 @@ fun DashboardContent(
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_profile),
                                         contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(20.dp),
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -202,10 +204,11 @@ fun DashboardContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    val currencyCode = LocalCurrency.current
                     SummarySmallCard(
                         modifier = Modifier.weight(1f),
                         label = stringResource(R.string.monthly_spent),
-                        value = stringResource(R.string.amount_format, totalExpense),
+                        value = CurrencyUtils.formatAmount(totalExpense, currencyCode),
                         iconBackground = MaterialTheme.colorScheme.secondaryContainer,
                         iconRes = R.drawable.ic_receipt
                     )
@@ -336,8 +339,9 @@ fun TotalBalanceCard(
                     color = Color.White.copy(alpha = 0.7f),
                     letterSpacing = 1.sp
                 )
+                val currencyCode = LocalCurrency.current
                 Text(
-                    text = stringResource(R.string.amount_format, balanceValue),
+                    text = CurrencyUtils.formatAmount(balanceValue, currencyCode),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.White
@@ -348,6 +352,7 @@ fun TotalBalanceCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val currencyCode = LocalCurrency.current
                 // Income Section
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -359,7 +364,7 @@ fun TotalBalanceCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.amount_format, totalIncome),
+                            text = CurrencyUtils.formatAmount(totalIncome, currencyCode),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -393,7 +398,7 @@ fun TotalBalanceCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.amount_format, totalExpense),
+                            text = CurrencyUtils.formatAmount(totalExpense, currencyCode),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

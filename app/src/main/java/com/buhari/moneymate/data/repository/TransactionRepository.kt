@@ -11,9 +11,9 @@ class TransactionRepository(private val transactionDao: TransactionDao) {
 
     val allTransactions: Flow<List<Transaction>> = transactionDao.getAllTransactions()
     
-    fun getMonthlyIncome(startDate: Long, endDate: Long): Flow<Double?> = transactionDao.getMonthlyIncome(startDate, endDate)
+    fun getMonthlyIncome(startDate: Long, endDate: Long, currencyCode: String): Flow<Double?> = transactionDao.getMonthlyIncome(startDate, endDate, currencyCode)
 
-    fun getMonthlyExpense(startDate: Long, endDate: Long): Flow<Double?> = transactionDao.getMonthlyExpense(startDate, endDate)
+    fun getMonthlyExpense(startDate: Long, endDate: Long, currencyCode: String): Flow<Double?> = transactionDao.getMonthlyExpense(startDate, endDate, currencyCode)
 
     suspend fun insertTransaction(transaction: Transaction): Long {
         return transactionDao.insertTransaction(transaction)
