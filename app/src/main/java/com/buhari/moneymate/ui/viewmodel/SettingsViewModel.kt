@@ -10,6 +10,7 @@ import com.buhari.moneymate.data.entity.UserProfile
 import com.buhari.moneymate.data.local.AppDatabase
 import com.buhari.moneymate.data.repository.TransactionRepository
 import com.buhari.moneymate.data.repository.UserProfileRepository
+import com.buhari.moneymate.ui.components.getCategoryIcon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,10 @@ import java.io.OutputStreamWriter
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        private const val CSV_HEADER = "uuid,title,amount,date,category,isExpense,icon,description"
+    }
+
     private val repository: TransactionRepository by lazy {
         val dao = AppDatabase.getDatabase(application).transactionDao()
         TransactionRepository(dao)
@@ -34,8 +39,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         UserProfileRepository(dao)
     }
 
-    private val _userProfile = MutableStateFlow(UserProfile())
-    val userProfile: StateFlow<UserProfile> = _userProfile.asStateFlow()
+    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -44,7 +49,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     _userProfile.value = profile
                 } else {
                     // Initial insert if not exists
-                    userProfileRepository.updateProfile(UserProfile())
+                    val defaultProfile = UserProfile()
+                    userProfileRepository.updateProfile(defaultProfile)
+                    _userProfile.value = defaultProfile
                 }
             }
         }
@@ -52,15 +59,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun updateProfile(name: String, profileImageUri: String?) {
         viewModelScope.launch {
-            var finalImagePath = profileImageUri
-            
-            // If it's a new URI (not already in our internal storage), copy it
-            if (profileImageUri != null && !profileImageUri.contains(getApplication<Application>().filesDir.path)) {
-                finalImagePath = saveImageToInternalStorage(profileImageUri)
-            }
+            _userProfile.value?.let { currentProfile ->
+                var finalImagePath = profileImageUri
+                
+                // If it's a new URI (not already in our internal storage), copy it
+                if (profileImageUri != null && !profileImageUri.contains(getApplication<Application>().filesDir.path)) {
+                    finalImagePath = saveImageToInternalStorage(profileImageUri)
+                }
 
-            val updatedProfile = _userProfile.value.copy(name = name, profileImage = finalImagePath)
-            userProfileRepository.updateProfile(updatedProfile)
+                val updatedProfile = currentProfile.copy(name = name, profileImage = finalImagePath)
+                userProfileRepository.updateProfile(updatedProfile)
+            }
         }
     }
 
@@ -90,22 +99,37 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun updateTheme(theme: String) {
         viewModelScope.launch {
-            val updatedProfile = _userProfile.value.copy(theme = theme)
-            userProfileRepository.updateProfile(updatedProfile)
+            _userProfile.value?.let {
+                val updatedProfile = it.copy(theme = theme)
+                userProfileRepository.updateProfile(updatedProfile)
+            }
         }
     }
 
     fun updateLanguage(languageCode: String) {
         viewModelScope.launch {
-            val updatedProfile = _userProfile.value.copy(language = languageCode)
-            userProfileRepository.updateProfile(updatedProfile)
+            _userProfile.value?.let {
+                val updatedProfile = it.copy(language = languageCode)
+                userProfileRepository.updateProfile(updatedProfile)
+            }
         }
     }
 
     fun updateCurrency(currencyCode: String) {
         viewModelScope.launch {
-            val updatedProfile = _userProfile.value.copy(currency = currencyCode)
-            userProfileRepository.updateProfile(updatedProfile)
+            _userProfile.value?.let {
+                val updatedProfile = it.copy(currency = currencyCode)
+                userProfileRepository.updateProfile(updatedProfile)
+            }
+        }
+    }
+
+    fun updateBiometricEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            _userProfile.value?.let {
+                val updatedProfile = it.copy(isBiometricEnabled = enabled)
+                userProfileRepository.updateProfile(updatedProfile)
+            }
         }
     }
 
@@ -124,7 +148,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                         OutputStreamWriter(outputStream).use { writer ->
                             // Header
-                            writer.write("uuid,title,amount,date,category,isExpense,icon,description\n")
+                            writer.write(CSV_HEADER + "\n")
                             transactions.forEach { t ->
                                 val line =
                                     "${t.uuid},${escapeCsv(t.title)},${t.amount},${t.date},${escapeCsv(t.category)},${t.isExpense},${t.icon},${
@@ -148,43 +172,65 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             try {
                 var addedCount = 0
                 var duplicateCount = 0
+                var isValidHeader = false
                 withContext(Dispatchers.IO) {
                     context.contentResolver.openInputStream(uri)?.use { inputStream ->
                         BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                            val header = reader.readLine() // Skip header
-                            var line: String? = reader.readLine()
-                            while (line != null) {
-                                val parts = parseCsvLine(line)
-                                if (parts.size >= 7) {
-                                    val hasUuid = parts.size >= 8
-                                    val transaction = Transaction(
-                                        uuid = if (hasUuid) parts[0] else java.util.UUID.randomUUID().toString(),
-                                        title = if (hasUuid) parts[1] else parts[0],
-                                        amount = (if (hasUuid) parts[2] else parts[1]).toDoubleOrNull() ?: 0.0,
-                                        date = (if (hasUuid) parts[3] else parts[2]).toLongOrNull()
-                                            ?: System.currentTimeMillis(),
-                                        category = if (hasUuid) parts[4] else parts[3],
-                                        isExpense = (if (hasUuid) parts[5] else parts[4]).toBoolean(),
-                                        icon = (if (hasUuid) parts[6] else parts[5]).toIntOrNull() ?: 0,
-                                        description = if (hasUuid) {
-                                            if (parts.size > 7) parts[7] else null
-                                        } else {
-                                            if (parts.size > 6) parts[6] else null
-                                        }
-                                    )
-                                    val id = repository.insertTransaction(transaction)
-                                    if (id == -1L) {
-                                        duplicateCount++
-                                    } else {
-                                        addedCount++
+                            val header = reader.readLine()
+                            if (header != null && header.trim() == CSV_HEADER) {
+                                isValidHeader = true
+                                var line: String? = reader.readLine()
+                                while (line != null) {
+                                    if (line.isBlank()) {
+                                        line = reader.readLine()
+                                        continue
                                     }
+                                    val parts = parseCsvLine(line)
+                                    if (parts.size >= 7) {
+                                        val hasUuid = parts.size >= 8
+                                        val category = if (hasUuid) parts[4] else parts[3]
+                                        val isExpense = (if (hasUuid) parts[5] else parts[4]).toBoolean()
+                                        
+                                        // Use getCategoryIcon to ensure the icon resource ID is valid for the current build
+                                        val iconRes = getCategoryIcon(category, isExpense)
+
+                                        val transaction = Transaction(
+                                            uuid = if (hasUuid) parts[0] else java.util.UUID.randomUUID().toString(),
+                                            title = if (hasUuid) parts[1] else parts[0],
+                                            amount = (if (hasUuid) parts[2] else parts[1]).toDoubleOrNull() ?: 0.0,
+                                            date = (if (hasUuid) parts[3] else parts[2]).toLongOrNull()
+                                                ?: System.currentTimeMillis(),
+                                            category = category,
+                                            isExpense = isExpense,
+                                            icon = iconRes,
+                                            description = if (hasUuid) {
+                                                if (parts.size > 7) parts[7] else null
+                                            } else {
+                                                if (parts.size > 6) parts[6] else null
+                                            }
+                                        )
+                                        
+                                        // Only add if it's a valid transaction (amount > 0)
+                                        if (transaction.amount > 0) {
+                                            val id = repository.insertTransaction(transaction)
+                                            if (id == -1L) {
+                                                duplicateCount++
+                                            } else {
+                                                addedCount++
+                                            }
+                                        }
+                                    }
+                                    line = reader.readLine()
                                 }
-                                line = reader.readLine()
                             }
                         }
                     }
                 }
-                onComplete(true, addedCount, duplicateCount)
+                if (isValidHeader) {
+                    onComplete(true, addedCount, duplicateCount)
+                } else {
+                    onComplete(false, 0, 0)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 onComplete(false, 0, 0)

@@ -10,5 +10,6 @@ data class UserProfile(
     val profileImage: String? = null,
     val theme: String = "System",
     val language: String = "en",
-    val currency: String = "INR"
+    val currency: String = "INR",
+    val isBiometricEnabled: Boolean = false
 )

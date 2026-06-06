@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,8 +52,9 @@ fun TransactionScreen(
             val monthStr = fmt.format(Date(transaction.date))
             val monthMatch = filterState.selectedMonths.isEmpty() || filterState.selectedMonths.contains(monthStr)
             val categoryMatch = filterState.selectedCategories.isEmpty() || filterState.selectedCategories.contains(transaction.category)
+            val currencyMatch = filterState.selectedCurrencies.isEmpty() || filterState.selectedCurrencies.contains(transaction.currencyCode)
             val typeMatch = transaction.isExpense == filterState.isExpense
-            monthMatch && categoryMatch && typeMatch
+            monthMatch && categoryMatch && currencyMatch && typeMatch
         }
     }
 
@@ -86,7 +88,9 @@ fun TransactionScreen(
                     ),
                     actions = {
                         IconButton(onClick = { showFilters = true }) {
-                            val isFiltered = filterState.selectedMonths.isNotEmpty() || filterState.selectedCategories.isNotEmpty()
+                            val isFiltered = filterState.selectedMonths.isNotEmpty() || 
+                                           filterState.selectedCategories.isNotEmpty() ||
+                                           filterState.selectedCurrencies.isNotEmpty()
                             Icon(
                                 imageVector = Icons.Default.FilterList,
                                 contentDescription = stringResource(R.string.filter),
@@ -133,14 +137,22 @@ fun TransactionScreen(
                                 tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
+                            val hasFilters = filterState.selectedMonths.isNotEmpty() || 
+                                            filterState.selectedCategories.isNotEmpty() ||
+                                            filterState.selectedCurrencies.isNotEmpty()
                             Text(
-                                text = if (filterState.selectedMonths.isNotEmpty() || filterState.selectedCategories.isNotEmpty())
+                                text = if (hasFilters)
                                     stringResource(R.string.no_matches_for_your_filters) else stringResource(R.string.no_transactions_found),
-                                color = MaterialTheme.colorScheme.secondary
+                                color = MaterialTheme.colorScheme.secondary,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
                             )
-                            if (filterState.selectedMonths.isNotEmpty() || filterState.selectedCategories.isNotEmpty()) {
+                            if (hasFilters) {
                                 TextButton(onClick = { filterState = FilterState() }) {
-                                    Text(stringResource(R.string.clear_filters))
+                                    Text(
+                                        stringResource(R.string.clear_filters),
+                                        textAlign = TextAlign.Center
+                                    )
                                 }
                             }
                         }

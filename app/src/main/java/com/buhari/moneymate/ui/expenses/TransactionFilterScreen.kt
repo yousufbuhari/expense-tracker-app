@@ -28,6 +28,7 @@ import java.util.*
 data class FilterState(
     val selectedMonths: Set<String> = emptySet(),
     val selectedCategories: Set<String> = emptySet(),
+    val selectedCurrencies: Set<String> = emptySet(),
     val isExpense: Boolean = true
 )
 
@@ -40,10 +41,14 @@ fun TransactionFilterScreen(
 ) {
     val monthsTab = "Months"
     val categoriesTab = "Categories"
+    val currenciesTab = "Currencies"
     var activeTab by remember { mutableStateOf(monthsTab) }
     var selectedMonths by remember { mutableStateOf(initialState.selectedMonths) }
     var selectedCategories by remember { mutableStateOf(initialState.selectedCategories) }
+    var selectedCurrencies by remember { mutableStateOf(initialState.selectedCurrencies) }
     var isExpense by remember { mutableStateOf(initialState.isExpense) }
+
+    val currencies = listOf("INR", "USD", "EUR", "GBP", "AED", "SAR", "SGD", "AUD", "CAD", "JPY", "KWD", "QAR")
 
     val expenseCategories = listOf("Housing", "Food", "Beverages", "Groceries", "Shopping", "Fuel", "Entertainment", "Travel", "Bills", "Finance", "Health", "Sports", "Family", "Pets", "Lending", "Other")
     val incomeCategories = listOf("Salary", "Freelance", "Business", "Investment", "Rental", "Bonus", "Gift", "Refund", "Other")
@@ -105,6 +110,7 @@ fun TransactionFilterScreen(
                     TextButton(onClick = {
                         selectedMonths = emptySet()
                         selectedCategories = emptySet()
+                        selectedCurrencies = emptySet()
                     }) {
                         Text(stringResource(R.string.clear_all), color = MaterialTheme.colorScheme.secondary)
                     }
@@ -114,7 +120,7 @@ fun TransactionFilterScreen(
         bottomBar = {
             Box(modifier = Modifier.padding(16.dp)) {
                 Button(
-                    onClick = { onApply(FilterState(selectedMonths, selectedCategories, isExpense)) },
+                    onClick = { onApply(FilterState(selectedMonths, selectedCategories, selectedCurrencies, isExpense)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -154,6 +160,7 @@ fun TransactionFilterScreen(
                 ) {
                     FilterTabItem(stringResource(R.string.months), activeTab == monthsTab) { activeTab = monthsTab }
                     FilterTabItem(stringResource(R.string.categories), activeTab == categoriesTab) { activeTab = categoriesTab }
+                    FilterTabItem(stringResource(R.string.currency), activeTab == currenciesTab) { activeTab = currenciesTab }
                 }
 
                 // Right Content
@@ -163,33 +170,51 @@ fun TransactionFilterScreen(
                         .fillMaxHeight()
                         .padding(horizontal = 16.dp)
                 ) {
-                    if (activeTab == monthsTab) {
-                        items(months) { month ->
-                            FilterOptionRow(
-                                label = month,
-                                isSelected = selectedMonths.contains(month),
-                                onSelect = {
-                                    selectedMonths = if (selectedMonths.contains(month)) {
-                                        selectedMonths - month
-                                    } else {
-                                        selectedMonths + month
+                    when (activeTab) {
+                        monthsTab -> {
+                            items(months) { month ->
+                                FilterOptionRow(
+                                    label = month,
+                                    isSelected = selectedMonths.contains(month),
+                                    onSelect = {
+                                        selectedMonths = if (selectedMonths.contains(month)) {
+                                            selectedMonths - month
+                                        } else {
+                                            selectedMonths + month
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
-                    } else {
-                        items(categories) { category ->
-                            FilterOptionRow(
-                                label = categoryDisplayNames[category] ?: category,
-                                isSelected = selectedCategories.contains(category),
-                                onSelect = {
-                                    selectedCategories = if (selectedCategories.contains(category)) {
-                                        selectedCategories - category
-                                    } else {
-                                        selectedCategories + category
+                        categoriesTab -> {
+                            items(categories) { category ->
+                                FilterOptionRow(
+                                    label = categoryDisplayNames[category] ?: category,
+                                    isSelected = selectedCategories.contains(category),
+                                    onSelect = {
+                                        selectedCategories = if (selectedCategories.contains(category)) {
+                                            selectedCategories - category
+                                        } else {
+                                            selectedCategories + category
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
+                        }
+                        currenciesTab -> {
+                            items(currencies) { currency ->
+                                FilterOptionRow(
+                                    label = currency,
+                                    isSelected = selectedCurrencies.contains(currency),
+                                    onSelect = {
+                                        selectedCurrencies = if (selectedCurrencies.contains(currency)) {
+                                            selectedCurrencies - currency
+                                        } else {
+                                            selectedCurrencies + currency
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
                 }

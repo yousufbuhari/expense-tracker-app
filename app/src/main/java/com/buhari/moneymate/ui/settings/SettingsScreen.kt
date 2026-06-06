@@ -37,7 +37,9 @@ fun SettingsScreen(
     onBack: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel()
 ) {
-    val userProfile by viewModel.userProfile.collectAsState()
+    val userProfileState by viewModel.userProfile.collectAsState()
+    val userProfile = userProfileState ?: return // Don't render until profile is loaded
+
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showProfileSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
@@ -188,10 +190,9 @@ fun SettingsScreen(
                         subtitle = stringResource(R.string.biometric_authentication),
                         icon = R.drawable.ic_fingerprint,
                         trailing = {
-                            var checked by remember { mutableStateOf(true) }
                             Switch(
-                                checked = checked,
-                                onCheckedChange = { checked = it },
+                                checked = userProfile.isBiometricEnabled,
+                                onCheckedChange = { viewModel.updateBiometricEnabled(it) },
                                 colors = SwitchDefaults.colors(
                                     checkedThumbColor = MaterialTheme.colorScheme.primary,
                                     checkedTrackColor = MaterialTheme.colorScheme.primaryContainer

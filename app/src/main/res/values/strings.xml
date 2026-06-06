@@ -82,7 +82,6 @@
     <string name="select_time_12h">Select Time (12h)</string>
     <string name="edit_profile">Edit Profile</string>
 
-    <!-- New Strings -->
     <string name="hi_user">Hi, %1$s</string>
     <string name="welcome_back">Welcome back!</string>
     <string name="add_expense_desc">Add Expense</string>
@@ -122,7 +121,7 @@
     <string name="amount_format">₹%.2f</string>
     <string name="today_format">Today, %1$s</string>
 
-    <!-- Categories -->
+    <!-- Expenses Categories -->
     <string name="cat_housing">Housing</string>
     <string name="cat_food">Food</string>
     <string name="cat_beverages">Beverages</string>
@@ -140,6 +139,7 @@
     <string name="cat_lending">Lending</string>
     <string name="cat_other">Other</string>
 
+    <!-- Income Categories -->
     <string name="cat_salary">Salary</string>
     <string name="cat_freelance">Freelance</string>
     <string name="cat_business">Business</string>

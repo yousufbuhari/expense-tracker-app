@@ -60,7 +60,10 @@ fun DashboardScreen(
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val transactions by viewModel.allTransactions.collectAsState(initial = emptyList())
-    val userProfile by settingsViewModel.userProfile.collectAsState()
+    val userProfileState by settingsViewModel.userProfile.collectAsState()
+    
+    val userProfile = userProfileState ?: return // Don't render until profile is loaded
+
     val totalIncome by viewModel.totalIncome.collectAsState(initial = 0.0)
     val totalExpense by viewModel.totalExpense.collectAsState(initial = 0.0)
 
