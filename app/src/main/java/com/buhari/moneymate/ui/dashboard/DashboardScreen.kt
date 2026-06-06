@@ -44,6 +44,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import coil3.compose.AsyncImage
 import com.buhari.moneymate.ui.components.TransactionListItem
+import com.buhari.moneymate.ui.components.getCategoryNameRes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -145,13 +146,13 @@ fun DashboardContent(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Hi, ${userProfile.name}",
+                                text = stringResource(R.string.hi_user, userProfile.name),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Welcome back!",
+                                text = stringResource(R.string.welcome_back),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -176,7 +177,7 @@ fun DashboardContent(
                 interactionSource = interactionSource,
                 modifier = Modifier.graphicsLayer(scaleX = scale, scaleY = scale)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Expense")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_expense_desc))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -204,7 +205,7 @@ fun DashboardContent(
                     SummarySmallCard(
                         modifier = Modifier.weight(1f),
                         label = stringResource(R.string.monthly_spent),
-                        value = String.format(Locale.getDefault(), "₹%.2f", totalExpense),
+                        value = stringResource(R.string.amount_format, totalExpense),
                         iconBackground = MaterialTheme.colorScheme.secondaryContainer,
                         iconRes = R.drawable.ic_receipt
                     )
@@ -213,7 +214,11 @@ fun DashboardContent(
                         .groupBy { it.category }
                         .maxByOrNull { it.value.sumOf { t -> t.amount } }
 
-                    val topCategoryName = topCategoryGroup?.key ?: "None"
+                    val topCategoryName = if (topCategoryGroup != null) {
+                        stringResource(getCategoryNameRes(topCategoryGroup.key))
+                    } else {
+                        stringResource(R.string.none)
+                    }
                     val topCategoryIcon = topCategoryGroup?.value?.firstOrNull()?.icon ?: R.drawable.ic_other
 
                     SummarySmallCard(
@@ -332,7 +337,7 @@ fun TotalBalanceCard(
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = String.format(Locale.getDefault(), "₹%.2f", balanceValue),
+                    text = stringResource(R.string.amount_format, balanceValue),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.White
@@ -354,7 +359,7 @@ fun TotalBalanceCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = String.format(Locale.getDefault(), "₹%.2f", totalIncome),
+                            text = stringResource(R.string.amount_format, totalIncome),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -388,7 +393,7 @@ fun TotalBalanceCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = String.format(Locale.getDefault(), "₹%.2f", totalExpense),
+                            text = stringResource(R.string.amount_format, totalExpense),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

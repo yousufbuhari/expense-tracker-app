@@ -12,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.buhari.moneymate.navigation.AppDestinations
 import com.buhari.moneymate.ui.theme.GoogleSans
@@ -51,11 +53,12 @@ fun AnimatedNavLabel(
     }
 
     Text(
-        text = destination.label,
+        text = stringResource(destination.label),
         style = MaterialTheme.typography.bodySmall.copy(
-            fontFamily = GoogleSans,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         ),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.graphicsLayer {
             this.alpha = alpha.value
             this.scaleX = scale.value

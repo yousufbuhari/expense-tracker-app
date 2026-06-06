@@ -98,6 +98,7 @@ private val DarkColorScheme = darkColorScheme(
 fun MoneyMateTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
+    language: String = "en",
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -127,13 +128,13 @@ fun MoneyMateTheme(
 
     CompositionLocalProvider(
         LocalDensity provides Density(
-            density = DisplayMetrics.DENSITY_DEVICE_STABLE / 160f,
+            density = LocalDensity.current.density,
             fontScale = 1.0f
         )
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = Typography,
+            typography = getTypography(language),
             content = content
         )
     }

@@ -8,5 +8,6 @@ data class UserProfile(
     @PrimaryKey val id: Int = 1,
     val name: String = "User",
     val profileImage: String? = null,
-    val theme: String = "Use device theme"
+    val theme: String = "Use device theme",
+    val language: String = "en"
 )

@@ -3,11 +3,11 @@ package com.buhari.moneymate.navigation
 import com.buhari.moneymate.R
 
 enum class AppDestinations(
-    val label: String,
+    val label: Int,
     val icon: Int,
 ) {
-    DASHBOARD("Dashboard", R.drawable.ic_dashboard),
-    TRANSACTION("Transactions", R.drawable.ic_receipt),
-    STATS("Stats", R.drawable.ic_stats),
-    SETTINGS("Settings", R.drawable.ic_settings),
+    DASHBOARD(R.string.dashboard, R.drawable.ic_dashboard),
+    TRANSACTION(R.string.transactions, R.drawable.ic_receipt),
+    STATS(R.string.stats, R.drawable.ic_stats),
+    SETTINGS(R.string.settings, R.drawable.ic_settings),
 }

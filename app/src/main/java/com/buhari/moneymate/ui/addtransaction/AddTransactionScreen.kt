@@ -1,5 +1,6 @@
 package com.buhari.moneymate.ui.addtransaction
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -38,6 +39,7 @@ import com.buhari.moneymate.ui.components.CategoryGrid
 import com.buhari.moneymate.ui.components.CompactCalendar
 import com.buhari.moneymate.ui.components.TransactionTypeToggle
 import com.buhari.moneymate.ui.components.getCategoryIcon
+import com.buhari.moneymate.ui.components.getCategoryNameRes
 import com.buhari.moneymate.ui.viewmodel.TransactionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,6 +91,7 @@ fun AddTransactionScreen(
     )
 }
 
+@SuppressLint("LocalContextResourcesRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionContent(
@@ -106,6 +109,9 @@ fun AddTransactionContent(
     var amount by remember(amountInit) { mutableStateOf(amountInit) }
     var description by remember(descriptionInit) { mutableStateOf(descriptionInit) }
     var selectedCategory by remember(selectedCategoryInit) { mutableStateOf(selectedCategoryInit) }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val res = context.resources
 
     var selectedDate by remember(selectedDateInit) { mutableStateOf(selectedDateInit) }
     var selectedTime by remember(selectedTimeInit) { mutableStateOf(selectedTimeInit) }
@@ -126,7 +132,7 @@ fun AddTransactionContent(
         AlertDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Done") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.done)) }
             },
             text = {
                 CompactCalendar(
@@ -160,10 +166,10 @@ fun AddTransactionContent(
                     }
                     selectedTime = cal
                     showTimePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.cancel)) }
             },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -192,7 +198,7 @@ fun AddTransactionContent(
                                 singleLine = true,
                                 shape = RoundedCornerShape(12.dp)
                             )
-                            Text("Hour", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+                            Text(stringResource(R.string.hour), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
                         }
                         Text(":", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 20.dp))
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -210,7 +216,7 @@ fun AddTransactionContent(
                                 singleLine = true,
                                 shape = RoundedCornerShape(12.dp)
                             )
-                            Text("Minute", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+                            Text(stringResource(R.string.minute), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.padding(bottom = 20.dp)) {
@@ -221,7 +227,7 @@ fun AddTransactionContent(
                                 modifier = Modifier.size(width = 50.dp, height = 35.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Text("am", style = MaterialTheme.typography.labelSmall, color = if (isAm) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.am), style = MaterialTheme.typography.labelSmall, color = if (isAm) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                             Spacer(modifier = Modifier.height(4.dp))
@@ -232,7 +238,7 @@ fun AddTransactionContent(
                                 modifier = Modifier.size(width = 50.dp, height = 35.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Text("pm", style = MaterialTheme.typography.labelSmall, color = if (!isAm) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(stringResource(R.string.pm), style = MaterialTheme.typography.labelSmall, color = if (!isAm) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -258,7 +264,7 @@ fun AddTransactionContent(
                 ),
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -281,8 +287,12 @@ fun AddTransactionContent(
                                 set(Calendar.MINUTE, selectedTime.get(Calendar.MINUTE))
                             }
 
+                            val titleString = description.ifBlank {
+                                selectedCategory
+                            }
+
                             val transaction = Transaction(
-                                title = description.ifBlank { selectedCategory },
+                                title = titleString,
                                 amount = amountValue,
                                 date = calendar.timeInMillis,
                                 category = selectedCategory,
@@ -427,11 +437,13 @@ fun AddTransactionContent(
                             it.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR) &&
                                     it.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR)
                         }
-                        val dateText = if (isToday) {
-                            "Today, " + SimpleDateFormat("MMM dd", Locale.getDefault()).format(selectedDate.time)
+                        /* val dateText = if (isToday) {
+                            stringResource(R.string.today_format, SimpleDateFormat("MMM dd", Locale.getDefault()).format(selectedDate.time))
                         } else {
                             dateFormatter.format(selectedDate.time)
-                        }
+                        } */
+
+                        val dateText = dateFormatter.format(selectedDate.time)
                         Text(
                             dateText,
                             style = MaterialTheme.typography.bodyMedium,
