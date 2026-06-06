@@ -56,6 +56,7 @@ import coil3.compose.AsyncImage
 import com.buhari.moneymate.R
 import com.buhari.moneymate.data.entity.Transaction
 import com.buhari.moneymate.ui.theme.*
+import com.buhari.moneymate.ui.theme.PrimaryPurple
 import com.buhari.moneymate.utils.CurrencyUtils
 import java.text.SimpleDateFormat
 import java.util.*
@@ -958,14 +959,15 @@ fun EditProfileContent(
                     .size(32.dp)
                     .clickable { showOptions = true },
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary,
-                shadowElevation = 4.dp
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                shadowElevation = 2.dp
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = stringResource(R.string.edit_image),
-                    modifier = Modifier.padding(7.dp),
-                    tint = Color.White
+                    modifier = Modifier.padding(6.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -1039,7 +1041,8 @@ fun EditProfileContent(
             Button(
                 onClick = { if (name.isNotBlank()) onSave(name, selectedImageUri) },
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
             ) {
                 Text(stringResource(R.string.save))
             }

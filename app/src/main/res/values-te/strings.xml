@@ -78,10 +78,16 @@
     <string name="fingerprint">వేలిముద్ర</string>
     <string name="biometric_authentication">బయోమెట్రిక్ ధృవీకరణ</string>
     <string name="cancel">రద్దు</string>
+    <string name="this_action_will_permanently_delete_all_income_and_expense_records_and_cannot_be_undone">ఈ చర్య అన్ని ఆదాయం మరియు ఖర్చు రికార్డులను శాశ్వతంగా తొలగిస్తుంది మరియు దీన్ని తిరిగి మార్చలేరు.</string>
+    <string name="select_time_12h">సమయాన్ని ఎంచుకోండి (12గం)</string>
     <string name="edit_profile">ప్రొఫైల్ సవరించు</string>
+    <string name="unlock_moneymate">మనీమేట్‌ను అన్‌లాక్ చేయండి</string>
+    <string name="verify_identity">మీ గుర్తింపును ధృవీకరించండి</string>
 
     <string name="hi_user">హాయ్, %1$s</string>
     <string name="welcome_back">మళ్లీ స్వాగతం!</string>
+    <string name="add_expense_desc">ఖర్చు జోడించండి</string>
+    <string name="none">ఏదీ లేదు</string>
     <string name="dashboard">డ్యాష్‌బోర్డ్</string>
     <string name="transactions">లావాదేవీలు</string>
     <string name="stats">గణాంకాలు</string>
@@ -99,16 +105,23 @@
     <string name="export_failed">డేటా ఎగుమతి విఫలమైంది</string>
     <string name="import_failed">డేటా దిగుమతి విఫలమైంది</string>
     <string name="import_success">డేటా విజయవంతంగా దిగుమతి చేయబడింది</string>
+    <string name="import_success_with_duplicates">%1$d అంశాలు దిగుమతి చేయబడ్డాయి. %2$d నకిలీలు దాటవేయబడ్డాయి.</string>
     <string name="duplicates_not_allowed">నకిలీలు అనుమతించబడవు</string>
+    <string name="import_no_data">ఫైల్‌లో సరైన డేటా కనుగొనబడలేదు</string>
     <string name="help_support">సహాయం &amp; మద్దతు</string>
     <string name="faq">తరచుగా అడిగే ప్రశ్నలు</string>
     <string name="save">సేవ్ చేయండి</string>
+    <string name="all_data_cleared">అన్ని డేటా తొలగించబడింది</string>
+    <string name="edit_image">చిత్రాన్ని సవరించండి</string>
     <string name="choose_theme">థీమ్‌ను ఎంచుకోండి</string>
     <string name="use_device_theme">డివైజ్ థీమ్‌ను ఉపయోగించండి</string>
     <string name="light">లైట్</string>
     <string name="at">వద్ద</string>
     <string name="amount_format">₹%.2f</string>
     <string name="today_format">నేడు, %1$s</string>
+    <string name="gallery">గ్యాలరీ</string>
+    <string name="camera">కెమెరా</string>
+    <string name="profile_name">ప్రొఫైల్ పేరు</string>
 
     <!-- Expense Categories -->
     <string name="cat_housing">ఇల్లు</string>

@@ -5,6 +5,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import androidx.core.content.ContextCompat
+import com.buhari.moneymate.R
 
 object BiometricHelper {
 
@@ -20,12 +21,15 @@ object BiometricHelper {
 
     fun showBiometricPrompt(
         activity: FragmentActivity,
-        title: String = "Biometric Authentication",
-        subtitle: String = "Log in using your biometric credential",
+        title: String? = null,
+        subtitle: String? = null,
         onSuccess: (BiometricPrompt.AuthenticationResult) -> Unit,
         onError: (Int, CharSequence) -> Unit,
         onFailed: () -> Unit
     ) {
+        val finalTitle = title ?: activity.getString(R.string.unlock_moneymate)
+        val finalSubtitle = subtitle ?: activity.getString(R.string.verify_identity)
+
         val executor = ContextCompat.getMainExecutor(activity)
         val biometricPrompt = BiometricPrompt(activity, executor,
             object : BiometricPrompt.AuthenticationCallback() {
@@ -52,8 +56,8 @@ object BiometricHelper {
         }
 
         val promptBuilder = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(title)
-            .setSubtitle(subtitle)
+            .setTitle(finalTitle)
+            .setSubtitle(finalSubtitle)
             .setAllowedAuthenticators(authenticators)
         
         if (android.os.Build.VERSION.SDK_INT < 30) {

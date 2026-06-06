@@ -82,6 +82,8 @@
     <string name="cancel">ರದ್ದುಮಾಡಿ</string>
     <string name="select_time_12h">ಸಮಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ (12ಗಂ)</string>
     <string name="edit_profile">ಪ್ರೊಫೈಲ್ ಸಂಪಾದಿಸಿ</string>
+    <string name="unlock_moneymate">ಮನಿಮೇಟ್ ಅನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಿ</string>
+    <string name="verify_identity">ನಿಮ್ಮ ಗುರುತನ್ನು ಪರಿಶೀಲಿಸಿ</string>
 
     <string name="hi_user">ನಮಸ್ಕಾರ, %1$s</string>
     <string name="welcome_back">ಮತ್ತೆ ಸ್ವಾಗತ!</string>

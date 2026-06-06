@@ -81,6 +81,8 @@
     <string name="cancel">ரத்துசெய்</string>
     <string name="select_time_12h">நேரத்தைத் தேர்ந்தெடு (12ம)</string>
     <string name="edit_profile">சுயவிவரத்தைத் திருத்து</string>
+    <string name="unlock_moneymate">மணிமேட்டைத் திறக்கவும்</string>
+    <string name="verify_identity">உங்கள் அடையாளத்தை உறுதிப்படுத்தவும்</string>
 
     <string name="hi_user">வணக்கம், %1$s</string>
     <string name="welcome_back">மீண்டும் வருக!</string>

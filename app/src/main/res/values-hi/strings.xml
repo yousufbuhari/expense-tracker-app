@@ -82,8 +82,9 @@
     <string name="cancel">रद्द करें</string>
     <string name="select_time_12h">समय चुनें (12घं)</string>
     <string name="edit_profile">प्रोफ़ाइल संपादित करें</string>
+    <string name="unlock_moneymate">मनीमेट अनलॉक करें</string>
+    <string name="verify_identity">अपनी पहचान सत्यापित करें</string>
 
-    <!-- New Strings -->
     <string name="hi_user">नमस्ते, %1$s</string>
     <string name="welcome_back">वापसी पर स्वागत है!</string>
     <string name="add_expense_desc">खर्च जोड़ें</string>
