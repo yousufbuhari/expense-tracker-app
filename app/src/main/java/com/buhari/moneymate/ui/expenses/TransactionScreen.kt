@@ -38,7 +38,7 @@ fun TransactionScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        delay(1000)
+        delay(500)
         isLoading = false
     }
 

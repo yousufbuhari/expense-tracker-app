@@ -29,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.buhari.moneymate.R
 import com.buhari.moneymate.data.entity.Transaction
 import com.buhari.moneymate.ui.theme.*
@@ -74,7 +76,7 @@ fun TransactionTypeToggle(
                     .weight(1f)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (isExpense) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .background(if (isExpense) PrimaryPurple else Color.Transparent)
                     .clickable { onTypeChange(true) },
                 contentAlignment = Alignment.Center
             ) {
@@ -89,7 +91,7 @@ fun TransactionTypeToggle(
                     .weight(1f)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (!isExpense) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .background(if (!isExpense) PrimaryPurple else Color.Transparent)
                     .clickable { onTypeChange(false) },
                 contentAlignment = Alignment.Center
             ) {
@@ -474,7 +476,10 @@ fun TransactionListItem(
                 bottomEnd = if (currentOffset < -1f) 0.dp else 20.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = if (currentOffset < -1f)
+                    MaterialTheme.colorScheme.surfaceVariant
+                else
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
             ),
             border = BorderStroke(
                 width = 0.5.dp,
@@ -542,8 +547,8 @@ fun SettingsItem(
     ) {
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = if (isDestructive) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
-            else MaterialTheme.colorScheme.surfaceVariant,
+            color = if (isDestructive) MaterialTheme.colorScheme.errorContainer
+            else MaterialTheme.colorScheme.secondaryContainer,
             modifier = Modifier.size(40.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -586,41 +591,100 @@ fun SettingsItem(
 }
 
 @Composable
-fun ProfileCard() {
+fun ProfileCard(
+    userName: String,
+    profileImage: String?,
+    onEditClick: () -> Unit
+) {
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f)
+        )
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(160.dp),
         shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            containerColor = Color.Transparent
         )
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .background(gradientBrush)
         ) {
-            Surface(
-                shape = androidx.compose.foundation.shape.CircleShape,
-                modifier = Modifier.size(64.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            TextButton(
+                onClick = onEditClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_profile),
-                    contentDescription = null,
-                    modifier = Modifier.padding(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Edit",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    modifier = Modifier.size(68.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                    shadowElevation = 4.dp
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (profileImage.isNullOrEmpty()) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_profile),
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            AsyncImage(
+                                model = profileImage,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = userName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "Monkey D Luffy",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
         }
     }
 }
@@ -644,7 +708,7 @@ fun SettingsSection(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
             ),
-            border = androidx.compose.foundation.BorderStroke(
+            border = BorderStroke(
                 width = 0.5.dp,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )

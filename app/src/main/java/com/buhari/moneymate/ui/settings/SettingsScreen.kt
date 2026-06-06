@@ -1,35 +1,95 @@
 package com.buhari.moneymate.ui.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.buhari.moneymate.R
 import com.buhari.moneymate.ui.components.ProfileCard
 import com.buhari.moneymate.ui.components.SettingsItem
 import com.buhari.moneymate.ui.components.SettingsSection
 import com.buhari.moneymate.ui.theme.MoneyMateTheme
+import com.buhari.moneymate.ui.viewmodel.SettingsViewModel
+import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    viewModel: SettingsViewModel = viewModel()
 ) {
+    val userProfile by viewModel.userProfile.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showProfileSheet by remember { mutableStateOf(false) }
+    var showThemeSheet by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let {
+            viewModel.exportDataToCsv(context, it) { success ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        if (success) "Data exported successfully" else "Failed to export data"
+                    )
+                }
+            }
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            viewModel.importDataFromCsv(context, it) { success, added, duplicates ->
+                scope.launch {
+                    val message = when {
+                        !success -> "Failed to import data"
+                        added > 0 && duplicates > 0 -> "Imported $added items. $duplicates duplicates skipped."
+                        added > 0 -> "Data imported successfully"
+                        duplicates > 0 -> "Duplicates not allowed"
+                        else -> "No valid data found in file"
+                    }
+                    snackbarHostState.showSnackbar(message)
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -37,13 +97,23 @@ fun SettingsScreen(
                 title = { Text(stringResource(R.string.settings), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 )
             )
+        },
+        snackbarHost = { 
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -56,16 +126,20 @@ fun SettingsScreen(
             contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
         ) {
             item {
-                ProfileCard()
+                ProfileCard(
+                    userName = userProfile.name,
+                    profileImage = userProfile.profileImage,
+                    onEditClick = { showProfileSheet = true }
+                )
             }
 
             item {
                 SettingsSection(title = stringResource(R.string.appearance)) {
                     SettingsItem(
                         title = stringResource(R.string.theme),
-                        subtitle = stringResource(R.string.dark),
+                        subtitle = userProfile.theme,
                         icon = R.drawable.ic_theme,
-                        onClick = { /* TODO: Open Theme Bottom Sheet */ }
+                        onClick = { showThemeSheet = true }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -123,9 +197,9 @@ fun SettingsScreen(
                 SettingsSection(title = stringResource(R.string.data_management)) {
                     SettingsItem(
                         title = stringResource(R.string.export_data),
-                        subtitle = stringResource(R.string.export_transactions_as_json_or_csv),
+                        subtitle = stringResource(R.string.export_transactions_as_csv),
                         icon = R.drawable.ic_export,
-                        onClick = { /* TODO: Export */ }
+                        onClick = { exportLauncher.launch("MoneyMate_Backup_${System.currentTimeMillis()}.csv") }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -136,7 +210,7 @@ fun SettingsScreen(
                         title = stringResource(R.string.import_data),
                         subtitle = stringResource(R.string.restore_transactions_from_backup),
                         icon = R.drawable.ic_import,
-                        onClick = { /* TODO: Import */ }
+                        onClick = { importLauncher.launch(arrayOf("text/comma-separated-values", "text/csv")) }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -144,7 +218,7 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
                     SettingsItem(
-                        title = stringResource(R.string.clear_all_data),
+                        title = stringResource(R.string._clear_all_data),
                         subtitle = stringResource(R.string.permanently_remove_all_records),
                         icon = R.drawable.ic_clear_all,
                         isDestructive = true,
@@ -187,7 +261,7 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
                     SettingsItem(
-                        title = stringResource(R.string.privacy),
+                        title = stringResource(R.string.privacy_policy),
                         subtitle = stringResource(R.string.data_is_stored_locally_on_your_device),
                         icon = R.drawable.ic_privacy_policy
                     )
@@ -199,24 +273,324 @@ fun SettingsScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Clear All Data?") },
-            text = { Text("This action will permanently delete all income and expense records and cannot be undone.") },
+            title = {
+                Text(
+                    text = stringResource(R.string.clear_all_data),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = { 
+                Text(
+                    text = stringResource(R.string.this_action_will_permanently_delete_all_income_and_expense_records_and_cannot_be_undone),
+                    style = MaterialTheme.typography.bodyLarge
+                ) 
+            },
             confirmButton = {
-                Button(
-                    onClick = { showDeleteDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                TextButton(
+                    onClick = {
+                        viewModel.clearAllData {
+                            showDeleteDialog = false
+                            scope.launch {
+                                snackbarHostState.showSnackbar("All data cleared")
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.delete), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
             shape = RoundedCornerShape(20.dp),
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
+    }
+
+    if (showProfileSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showProfileSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            EditProfileContent(
+                currentName = userProfile.name,
+                currentImage = userProfile.profileImage,
+                onSave = { name, image ->
+                    viewModel.updateProfile(name, image)
+                    showProfileSheet = false
+                },
+                onCancel = { showProfileSheet = false }
+            )
+        }
+    }
+
+    if (showThemeSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showThemeSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            ThemeSelectionContent(
+                currentTheme = userProfile.theme,
+                onThemeSelected = { theme ->
+                    viewModel.updateTheme(theme)
+                    showThemeSheet = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun EditProfileContent(
+    currentName: String,
+    currentImage: String?,
+    onSave: (String, String?) -> Unit,
+    onCancel: () -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    var selectedImageUri by remember { mutableStateOf(currentImage) }
+    var showOptions by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it.toString()
+        }
+    }
+
+    val tempUri = remember {
+        val file = File(context.cacheDir, "temp_image.jpg")
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider",
+            file
+        )
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            selectedImageUri = tempUri.toString()
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            cameraLauncher.launch(tempUri)
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .padding(top = 8.dp, bottom = 24.dp)
+            .navigationBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.edit_profile),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Profile Image with Edit Action
+        Box(
+            modifier = Modifier
+                .size(110.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .clickable { showOptions = true },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            ) {
+                if (selectedImageUri.isNullOrEmpty()) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_profile),
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else {
+                    AsyncImage(
+                        model = selectedImageUri,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                }
+            }
+
+            // Edit Overlay Button
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = (-4).dp, y = (-4).dp)
+                    .size(32.dp)
+                    .clickable { showOptions = true },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary,
+                shadowElevation = 4.dp
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Image",
+                    modifier = Modifier.padding(7.dp),
+                    tint = Color.White
+                )
+            }
+        }
+
+        if (showOptions) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        galleryLauncher.launch("image/*")
+                        showOptions = false
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(imageVector = Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Gallery")
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                OutlinedButton(
+                    onClick = {
+                        when (PackageManager.PERMISSION_GRANTED) {
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) -> {
+                                cameraLauncher.launch(tempUri)
+                            }
+                            else -> {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }
+                        showOptions = false
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Camera")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Profile Name") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Cancel")
+            }
+            Button(
+                onClick = { if (name.isNotBlank()) onSave(name, selectedImageUri) },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Save")
+            }
+        }
+    }
+}
+
+@Composable
+fun ThemeSelectionContent(
+    currentTheme: String,
+    onThemeSelected: (String) -> Unit
+) {
+    val themes = listOf("Use device theme", "Light", "Dark")
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .padding(vertical = 2.dp)
+            .navigationBarsPadding()
+    ) {
+        Text(
+            text = "Choose Theme",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        themes.forEach { theme ->
+            Surface(
+                onClick = { onThemeSelected(theme) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = if (currentTheme == theme) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = theme,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = if (currentTheme == theme) FontWeight.Bold else FontWeight.Normal
+                    )
+                    RadioButton(
+                        selected = currentTheme == theme,
+                        onClick = { onThemeSelected(theme) }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+        }
     }
 }
 

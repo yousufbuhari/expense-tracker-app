@@ -26,14 +26,6 @@ import com.buhari.moneymate.ui.addtransaction.AddTransactionScreen
 import com.buhari.moneymate.ui.dashboard.DashboardScreen
 import com.buhari.moneymate.ui.expenses.TransactionScreen
 import com.buhari.moneymate.ui.settings.SettingsScreen
-import com.buhari.moneymate.ui.theme.NavBgDark
-import com.buhari.moneymate.ui.theme.NavBgLight
-import com.buhari.moneymate.ui.theme.NavSelectedBgDark
-import com.buhari.moneymate.ui.theme.NavSelectedBgLight
-import com.buhari.moneymate.ui.theme.NavSelectedContentDark
-import com.buhari.moneymate.ui.theme.NavSelectedContentLight
-import com.buhari.moneymate.ui.theme.NavUnselectedContentDark
-import com.buhari.moneymate.ui.theme.NavUnselectedContentLight
 
 @PreviewScreenSizes
 @Composable
@@ -41,7 +33,6 @@ fun MoneyMateApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.DASHBOARD) }
     var showAddTransaction by rememberSaveable { mutableStateOf(false) }
     var editingTransactionId by rememberSaveable { mutableStateOf<Int?>(null) }
-    val isDarkTheme = isSystemInDarkTheme()
 
     BackHandler(enabled = showAddTransaction || currentDestination != AppDestinations.DASHBOARD) {
         if (showAddTransaction) {
@@ -94,18 +85,18 @@ fun MoneyMateApp() {
             } else {
                 val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
                     navigationBarItemColors = NavigationBarItemDefaults.colors(
-                        indicatorColor = if (isDarkTheme) NavSelectedBgDark else NavSelectedBgLight,
-                        selectedIconColor = if (isDarkTheme) NavSelectedContentDark else NavSelectedContentLight,
-                        selectedTextColor = if (isDarkTheme) NavSelectedContentDark else NavSelectedContentLight,
-                        unselectedIconColor = if (isDarkTheme) NavUnselectedContentDark else NavUnselectedContentLight,
-                        unselectedTextColor = if (isDarkTheme) NavUnselectedContentDark else NavUnselectedContentLight,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     ),
                     navigationRailItemColors = NavigationRailItemDefaults.colors(
-                        indicatorColor = if (isDarkTheme) NavSelectedBgDark else NavSelectedBgLight,
-                        selectedIconColor = if (isDarkTheme) NavSelectedContentDark else NavSelectedContentLight,
-                        selectedTextColor = if (isDarkTheme) NavSelectedContentDark else NavSelectedContentLight,
-                        unselectedIconColor = if (isDarkTheme) NavUnselectedContentDark else NavUnselectedContentLight,
-                        unselectedTextColor = if (isDarkTheme) NavUnselectedContentDark else NavUnselectedContentLight,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 )
 
@@ -133,8 +124,10 @@ fun MoneyMateApp() {
                         }
                     },
                     navigationSuiteColors = NavigationSuiteDefaults.colors(
-                        navigationBarContainerColor = if (isDarkTheme) NavBgDark else NavBgLight,
-                        navigationRailContainerColor = if (isDarkTheme) NavBgDark else NavBgLight,
+                        navigationBarContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        navigationRailContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        navigationBarContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        navigationRailContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
                     when (currentDestination) {

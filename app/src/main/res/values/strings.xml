@@ -36,13 +36,14 @@
     <string name="settings">Settings</string>
     <string name="theme">Theme</string>
     <string name="dark">Dark</string>
-    <string name="privacy">Privacy</string>
+    <string name="privacy_policy">Privacy Policy</string>
     <string name="data_is_stored_locally_on_your_device">Data is stored locally on your device</string>
     <string name="export_data">Export Data</string>
-    <string name="export_transactions_as_json_or_csv">Export transactions as JSON or CSV</string>
+    <string name="export_transactions_as_csv">Export transactions as CSV</string>
     <string name="import_data">Import Data</string>
     <string name="restore_transactions_from_backup">Restore transactions from backup</string>
-    <string name="clear_all_data">Clear All Data</string>
+    <string name="_clear_all_data">Clear All Data</string>
+    <string name="clear_all_data">Clear All Data?</string>
     <string name="permanently_remove_all_records">Permanently remove all records</string>
     <string name="currency">Currency</string>
     <string name="inr">₹ INR</string>
@@ -58,4 +59,8 @@
     <string name="appearance">Appearance</string>
     <string name="fingerprint">Fingerprint</string>
     <string name="biometric_authentication">Biometric Authentication</string>
+    <string name="this_action_will_permanently_delete_all_income_and_expense_records_and_cannot_be_undone">This action will permanently delete all income and expense records and cannot be undone.</string>
+    <string name="cancel">Cancel</string>
+    <string name="select_time_12h">Select Time (12h)</string>
+    <string name="edit_profile">Edit Profile</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.buhari.moneymate.ui.theme
 
+import android.app.Activity
 import android.os.Build
 import android.util.DisplayMetrics
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -10,10 +11,13 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
+import androidx.core.view.WindowCompat
 
 // =====================================================
 // LIGHT COLOR SCHEME
@@ -33,8 +37,8 @@ private val LightColorScheme = lightColorScheme(
     onBackground = TextPrimary,
     onSurface = TextPrimary,
 
-    primaryContainer = PrimaryPurple,
-    onPrimaryContainer = Color.White,
+    primaryContainer = SecondaryPurpleContainer,
+    onPrimaryContainer = PrimaryPurple,
 
     secondaryContainer = SecondaryPurpleContainer,
     onSecondaryContainer = PrimaryPurple,
@@ -42,7 +46,8 @@ private val LightColorScheme = lightColorScheme(
     tertiaryContainer = TertiaryPurpleContainer,
     onTertiaryContainer = PrimaryPurple,
 
-    surfaceVariant = BackgroundLight,
+    surfaceVariant = Color(0xFFF2F2F2),
+    surfaceContainer = NavbarLight,
     onSurfaceVariant = TextSecondary,
 
     error = ErrorRed,
@@ -78,6 +83,7 @@ private val DarkColorScheme = darkColorScheme(
     onTertiaryContainer = DarkTextPrimary,
 
     surfaceVariant = DarkSurfaceVariant,
+    surfaceContainer = NavbarDark,
     onSurfaceVariant = DarkTextSecondary,
 
     error = ErrorRedDark,
@@ -106,6 +112,17 @@ fun MoneyMateTheme(
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
+        }
     }
 
     CompositionLocalProvider(

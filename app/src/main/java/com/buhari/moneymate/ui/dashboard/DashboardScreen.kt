@@ -34,12 +34,15 @@ import com.buhari.moneymate.ui.theme.PrimaryPurple
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.buhari.moneymate.ui.viewmodel.TransactionViewModel
+import com.buhari.moneymate.ui.viewmodel.SettingsViewModel
+import com.buhari.moneymate.data.entity.UserProfile
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import coil3.compose.AsyncImage
 import com.buhari.moneymate.ui.components.TransactionListItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -50,9 +53,11 @@ fun DashboardScreen(
     onAddTransaction: () -> Unit = {},
     onEditTransaction: (Int) -> Unit = {},
     onViewAll: () -> Unit = {},
-    viewModel: TransactionViewModel = viewModel()
+    viewModel: TransactionViewModel = viewModel(),
+    settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val transactions by viewModel.allTransactions.collectAsState(initial = emptyList())
+    val userProfile by settingsViewModel.userProfile.collectAsState()
     val totalIncome by viewModel.totalIncome.collectAsState(initial = 0.0)
     val totalExpense by viewModel.totalExpense.collectAsState(initial = 0.0)
 
@@ -61,7 +66,7 @@ fun DashboardScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        delay(1000)
+        delay(500)
         isLoading = false
     }
 
@@ -80,6 +85,7 @@ fun DashboardScreen(
     ) {
         DashboardContent(
             transactions = transactions,
+            userProfile = userProfile,
             totalIncome = totalIncome ?: 0.0,
             totalExpense = totalExpense ?: 0.0,
             isLoading = isLoading,
@@ -95,6 +101,7 @@ fun DashboardScreen(
 @Composable
 fun DashboardContent(
     transactions: List<Transaction>,
+    userProfile: UserProfile,
     totalIncome: Double,
     totalExpense: Double,
     isLoading: Boolean,
@@ -110,19 +117,45 @@ fun DashboardContent(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
+                        Surface(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                        )
+                                .size(42.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                        ) {
+                            if (userProfile.profileImage.isNullOrEmpty()) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_profile),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else {
+                                AsyncImage(
+                                    model = userProfile.profileImage,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                )
+                            }
+                        }
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            "Finance",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Column {
+                            Text(
+                                text = "Hi, ${userProfile.name}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Welcome back!",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -378,7 +411,7 @@ fun SummarySmallCard(modifier: Modifier, label: String, value: String, iconBackg
         modifier = modifier.height(120.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         ),
         border = BorderStroke(
             width = 0.5.dp,
@@ -422,10 +455,42 @@ fun SummarySmallCard(modifier: Modifier, label: String, value: String, iconBackg
 
 // For preview
 val recentTransactions = listOf(
-    Transaction(1, "Starbucks", 5.50, System.currentTimeMillis(), "Food", true, R.drawable.ic_food),
-    Transaction(2, "Uber", 12.00, System.currentTimeMillis() - 86400000, "Transport", true, R.drawable.ic_travel),
-    Transaction(3, "Rent", 1200.00, System.currentTimeMillis() - 172800000, "Bills", true, R.drawable.ic_home),
-    Transaction(4, "Whole Foods", 84.20, System.currentTimeMillis() - 259200000, "Groceries", true, R.drawable.ic_groceries)
+    Transaction(
+        id = 1,
+        title = "Starbucks",
+        amount = 5.50,
+        date = System.currentTimeMillis(),
+        category = "Food",
+        isExpense = true,
+        icon = R.drawable.ic_food
+    ),
+    Transaction(
+        id = 2,
+        title = "Uber",
+        amount = 12.00,
+        date = System.currentTimeMillis() - 86400000,
+        category = "Transport",
+        isExpense = true,
+        icon = R.drawable.ic_travel
+    ),
+    Transaction(
+        id = 3,
+        title = "Rent",
+        amount = 1200.00,
+        date = System.currentTimeMillis() - 172800000,
+        category = "Bills",
+        isExpense = true,
+        icon = R.drawable.ic_home
+    ),
+    Transaction(
+        id = 4,
+        title = "Whole Foods",
+        amount = 84.20,
+        date = System.currentTimeMillis() - 259200000,
+        category = "Groceries",
+        isExpense = true,
+        icon = R.drawable.ic_groceries
+    )
 )
 
 @Preview
@@ -434,6 +499,7 @@ private fun DashboardPreview() {
     MoneyMateTheme {
         DashboardContent(
             transactions = recentTransactions,
+            userProfile = UserProfile(name = "John Doe"),
             totalIncome = 5000.0,
             totalExpense = 750.0,
             isLoading = false,

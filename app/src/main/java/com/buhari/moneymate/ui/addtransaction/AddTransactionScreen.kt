@@ -120,6 +120,7 @@ fun AddTransactionContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val amountErrorMessage = stringResource(R.string.amount_error)
+    val wasEdit = remember { isEdit }
 
     if (showDatePicker) {
         AlertDialog(
@@ -167,7 +168,7 @@ fun AddTransactionContent(
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "Select Time (12h)",
+                        stringResource(R.string.select_time_12h),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -245,7 +246,7 @@ fun AddTransactionContent(
         topBar = {
             TopAppBar(
                 title = {
-                    val title = if (isEdit) {
+                    val title = if (wasEdit) {
                         if (isExpense) stringResource(R.string.edit_expense) else stringResource(R.string.edit_income)
                     } else {
                         if (isExpense) stringResource(R.string.add_expense) else stringResource(R.string.add_income)
@@ -300,7 +301,7 @@ fun AddTransactionContent(
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                         .height(50.dp),
                     shape = RoundedCornerShape(15.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (isExpense) PrimaryPurple else MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
                 ) {
                     val buttonText = if (isEdit) {
                         stringResource(R.string.update)
@@ -322,13 +323,18 @@ fun AddTransactionContent(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            TransactionTypeToggle(
-                isExpense = isExpense,
-                onTypeChange = {
-                    isExpense = it
-                    selectedCategory = if (it) "Housing" else "Salary"
-                }
-            )
+            if (!isEdit) {
+                TransactionTypeToggle(
+                    isExpense = isExpense,
+                    onTypeChange = {
+                        isExpense = it
+                        selectedCategory = if (it) "Housing" else "Salary"
+                        amount = ""
+                        description = ""
+                    }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
             

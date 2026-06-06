@@ -7,7 +7,8 @@ import androidx.compose.ui.graphics.Color
 // =====================================================
 
 val PrimaryPurple = Color(0xFF5F259F)
-val BackgroundLight = Color(0xFFF8F5FF)
+val BackgroundLight = Color(0xFFFFFFFF)
+val NavbarLight = Color(0xFFF5F5F5)
 val CardWhite = Color(0xFFFFFFFF)
 
 val TextPrimary = Color(0xFF1E1333)
@@ -17,20 +18,15 @@ val SuccessGreen = Color(0xFF22C55E)
 val ErrorRed = Color(0xFFEF4444)
 val EditBlue = Color(0xFF4A90E2)
 
-val SecondaryPurpleContainer = Color(0xFFEFE7FF)
-val TertiaryPurpleContainer = Color(0xFFD6C2FF)
-
-// Navigation - Light
-val NavBgLight = Color(0xFFFFFFFF)
-val NavSelectedBgLight = Color(0xFFEDE4FF)
-val NavSelectedContentLight = Color(0xFF5F259F)
-val NavUnselectedContentLight = Color(0xFF7B718E)
+val SecondaryPurpleContainer = Color(0xFFEADDFF)
+val TertiaryPurpleContainer = Color(0xFFE9E4F0)
 
 // =====================================================
 // DARK THEME COLORS
 // =====================================================
 
 val DarkBackground = Color(0xFF121018)
+val NavbarDark = Color(0xFF1E1B24)
 val DarkSurface = Color(0xFF1B1725)
 val DarkSurfaceVariant = Color(0xFF262032)
 
@@ -42,12 +38,6 @@ val DarkSecondaryContainer = Color(0xFF312B42)
 
 val DarkTextPrimary = Color(0xFFF4F1FA)
 val DarkTextSecondary = Color(0xFFB5AFC2)
-
-// Navigation - Dark
-val NavBgDark = Color(0xFF1B1725)
-val NavSelectedBgDark = Color(0xFF35215D)
-val NavSelectedContentDark = Color(0xFFD9C4FF)
-val NavUnselectedContentDark = Color(0xFF8D869C)
 
 val SuccessGreenDark = Color(0xFF4ADE80)
 val ErrorRedDark = Color(0xFFF87171)
