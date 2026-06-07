@@ -4,7 +4,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -29,11 +28,12 @@ import com.buhari.moneymate.ui.addtransaction.AddTransactionScreen
 import com.buhari.moneymate.ui.dashboard.DashboardScreen
 import com.buhari.moneymate.ui.expenses.TransactionScreen
 import com.buhari.moneymate.ui.settings.SettingsScreen
+import com.buhari.moneymate.ui.splash.SplashScreen
 
 @PreviewScreenSizes
 @Composable
 fun MoneyMateApp(language: String = "en") {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.DASHBOARD) }
+    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.SPLASH) }
     var showAddTransaction by rememberSaveable { mutableStateOf(false) }
     var editingTransactionId by rememberSaveable { mutableStateOf<Int?>(null) }
 
@@ -86,6 +86,12 @@ fun MoneyMateApp(language: String = "en") {
                             editingTransactionId = null
                         }
                     )
+                } else if (currentDestination == AppDestinations.SPLASH) {
+                    SplashScreen(
+                        onSplashFinished = {
+                            currentDestination = AppDestinations.DASHBOARD
+                        }
+                    )
                 } else {
                     val myNavigationSuiteItemColors = NavigationSuiteDefaults.itemColors(
                         navigationBarItemColors = NavigationBarItemDefaults.colors(
@@ -106,7 +112,7 @@ fun MoneyMateApp(language: String = "en") {
 
                     NavigationSuiteScaffold(
                         navigationSuiteItems = {
-                            AppDestinations.entries.forEach { destination ->
+                            AppDestinations.entries.filter { it != AppDestinations.SPLASH }.forEach { destination ->
                                 val isSelected = destination == currentDestination
                                 item(
                                     icon = {
@@ -157,6 +163,7 @@ fun MoneyMateApp(language: String = "en") {
                             AppDestinations.SETTINGS -> SettingsScreen(
                                 onBack = { currentDestination = AppDestinations.DASHBOARD }
                             )
+                            else -> {}
                         }
                     }
                 }

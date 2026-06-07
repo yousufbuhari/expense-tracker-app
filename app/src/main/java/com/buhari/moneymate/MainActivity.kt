@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -23,16 +24,17 @@ import java.util.Locale
 class MainActivity : FragmentActivity() {
     @SuppressLint("LocalContextConfigurationRead")
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val settingsViewModel: SettingsViewModel = viewModel()
             val userProfileState by settingsViewModel.userProfile.collectAsState()
             
-            val userProfile = userProfileState ?: return@setContent // Don't render until profile is loaded
+            val userProfile = userProfileState
             
             val context = LocalContext.current
-            val language = userProfile.language
+            val language = userProfile?.language ?: "en"
 
             // Update locale configuration
             val locale = Locale.forLanguageTag(language)
@@ -42,46 +44,16 @@ class MainActivity : FragmentActivity() {
             configuration.setLocale(locale)
             resources.updateConfiguration(configuration, resources.displayMetrics)
 
-            val darkTheme = when (userProfile.theme) {
+            val darkTheme = when (userProfile?.theme) {
                 "Dark" -> true
                 "Light" -> false
                 else -> isSystemInDarkTheme()
             }
 
-            val activity = context as? FragmentActivity
-            var isAuthenticated by remember { mutableStateOf(false) }
-            var authInitiated by remember { mutableStateOf(false) }
-
-            // Handle biometric authentication
-            LaunchedEffect(userProfile.isBiometricEnabled) {
-                if (userProfile.isBiometricEnabled && !isAuthenticated && !authInitiated) {
-                    authInitiated = true
-                    if (activity != null && BiometricHelper.isBiometricAvailable(activity)) {
-                        BiometricHelper.showBiometricPrompt(
-                            activity = activity,
-                            onSuccess = { 
-                                isAuthenticated = true
-                                authInitiated = false 
-                            },
-                            onError = { _, _ -> 
-                                authInitiated = false
-                                // Close app if authentication is required but failed/canceled
-                                activity.finish()
-                            },
-                            onFailed = { 
-                                authInitiated = false 
-                            }
-                        )
-                    } else {
-                        isAuthenticated = true
-                    }
-                }
-            }
-
             MoneyMateTheme(
                 darkTheme = darkTheme,
                 language = language,
-                currency = userProfile.currency
+                currency = userProfile?.currency ?: "INR"
             ) {
                 MoneyMateApp(language = language)
             }

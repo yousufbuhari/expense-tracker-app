@@ -16,14 +16,7 @@ val GoogleSans = FontFamily(
     Font(R.font.google_sans_bold, FontWeight.Bold)
 )
 
-val notoSans = FontFamily(
-    Font(R.font.noto_sans_regular, FontWeight.Normal),
-    Font(R.font.noto_sans_medium, FontWeight.Medium),
-    Font(R.font.noto_sans_semibold, FontWeight.SemiBold),
-    Font(R.font.noto_sans_bold, FontWeight.Bold)
-)
-
-val manrope = FontFamily(
+val Manrope = FontFamily(
     Font(R.font.manrope_regular, FontWeight.Normal),
     Font(R.font.manrope_medium, FontWeight.Medium),
     Font(R.font.manrope_semibold, FontWeight.SemiBold),
@@ -32,7 +25,7 @@ val manrope = FontFamily(
 
 fun getTypography(language: String): Typography {
     val isIndic = language in listOf("ta", "ml", "te", "kn")
-    val activeFontFamily = manrope
+    val activeFontFamily = Manrope
     val scaleFactor = 0.9f
 
     return Typography(
