@@ -9,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
@@ -19,9 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import com.buhari.moneymate.R
 import com.buhari.moneymate.navigation.components.AnimatedNavIcon
 import com.buhari.moneymate.navigation.components.AnimatedNavLabel
 import com.buhari.moneymate.ui.addtransaction.AddTransactionScreen
@@ -29,6 +26,7 @@ import com.buhari.moneymate.ui.dashboard.DashboardScreen
 import com.buhari.moneymate.ui.expenses.TransactionScreen
 import com.buhari.moneymate.ui.settings.SettingsScreen
 import com.buhari.moneymate.ui.splash.SplashScreen
+import com.buhari.moneymate.ui.stats.StatsScreen
 
 @PreviewScreenSizes
 @Composable
@@ -159,7 +157,9 @@ fun MoneyMateApp(language: String = "en") {
                                     showAddTransaction = true
                                 }
                             )
-                            AppDestinations.STATS -> Text(stringResource(R.string.stats))
+                            AppDestinations.STATS -> StatsScreen(
+                                onBack = { currentDestination = AppDestinations.DASHBOARD }
+                            )
                             AppDestinations.SETTINGS -> SettingsScreen(
                                 onBack = { currentDestination = AppDestinations.DASHBOARD }
                             )

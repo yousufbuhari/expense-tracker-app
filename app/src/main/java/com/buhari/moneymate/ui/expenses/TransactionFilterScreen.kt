@@ -2,6 +2,7 @@ package com.buhari.moneymate.ui.expenses
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.buhari.moneymate.R
 import com.buhari.moneymate.ui.components.TransactionTypeToggle
 import com.buhari.moneymate.ui.theme.MoneyMateTheme
@@ -258,8 +258,10 @@ fun FilterTabItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .background(if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onClick() }
             .padding(vertical = 16.dp, horizontal = 16.dp)
     ) {
         Text(
@@ -276,7 +278,10 @@ fun FilterOptionRow(label: String, isSelected: Boolean, onSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect() }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onSelect() }
             .padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

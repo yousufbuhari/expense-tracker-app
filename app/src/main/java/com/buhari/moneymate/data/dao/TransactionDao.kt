@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.buhari.moneymate.data.entity.Transaction
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,9 @@ interface TransactionDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTransaction(transaction: Transaction): Long
+
+    @Update
+    suspend fun updateTransaction(transaction: Transaction)
 
     @Delete
     suspend fun deleteTransaction(transaction: Transaction)

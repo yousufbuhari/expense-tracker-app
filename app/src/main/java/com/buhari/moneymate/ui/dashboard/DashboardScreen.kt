@@ -3,6 +3,8 @@ package com.buhari.moneymate.ui.dashboard
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
@@ -18,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -33,6 +37,8 @@ import com.buhari.moneymate.ui.theme.ErrorRed
 import com.buhari.moneymate.ui.theme.PrimaryPurple
 import com.buhari.moneymate.ui.theme.LocalCurrency
 import com.buhari.moneymate.utils.CurrencyUtils
+import java.util.Date
+import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.buhari.moneymate.ui.viewmodel.TransactionViewModel
@@ -42,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import coil3.compose.AsyncImage
@@ -62,7 +69,7 @@ fun DashboardScreen(
 ) {
     val transactions by viewModel.allTransactions.collectAsState(initial = emptyList())
     val userProfileState by settingsViewModel.userProfile.collectAsState()
-    
+
     val userProfile = userProfileState ?: return // Don't render until profile is loaded
 
     val totalIncome by viewModel.totalIncome.collectAsState(initial = 0.0)
@@ -338,98 +345,164 @@ fun TotalBalanceCard(
     totalIncome: Double,
     totalExpense: Double
 ) {
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(
+            PrimaryPurple,
+            Color(0xFF8E44AD)
+        )
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp),
-        shape = RoundedCornerShape(24.dp),
+            .height(210.dp),
+        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         colors = CardDefaults.cardColors(containerColor = PrimaryPurple)
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .background(gradientBrush)
         ) {
-            Column {
-                Text(
-                    text = stringResource(R.string.total_balance),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.7f),
-                    letterSpacing = 1.sp
+            // Background decorative circles
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val canvasWidth = size.width
+                val canvasHeight = size.height
+                val minDim = size.minDimension
+
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.05f),
+                    radius = minDim / 1.5f,
+                    center = Offset(canvasWidth * 0.9f, canvasHeight * 0.2f)
                 )
-                val currencyCode = LocalCurrency.current
-                Text(
-                    text = CurrencyUtils.formatAmount(balanceValue, currencyCode),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.05f),
+                    radius = minDim / 2.5f,
+                    center = Offset(canvasWidth * 0.1f, canvasHeight * 0.8f)
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                val currencyCode = LocalCurrency.current
-                // Income Section
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowUpward,
-                            contentDescription = null,
-                            tint = SuccessGreen,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Surface(
+                        color = Color.White.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
                         Text(
-                            text = CurrencyUtils.formatAmount(totalIncome, currencyCode),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date()),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
-                        text = stringResource(R.string.income),
+                        text = stringResource(R.string.total_balance),
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = Color.White.copy(alpha = 0.8f),
+                        letterSpacing = 1.5.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val currencyCode = LocalCurrency.current
+                    Text(
+                        text = CurrencyUtils.formatAmount(balanceValue, currencyCode),
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontSize = 38.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-0.5).sp
+                        ),
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                // Divider
-                Box(
-                    modifier = Modifier
-                        .height(30.dp)
-                        .width(1.dp)
-                        .background(Color.White.copy(alpha = 0.2f))
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    val currencyCode = LocalCurrency.current
 
-                Spacer(modifier = Modifier.width(16.dp))
+                    // Income Section
+                    BalanceSection(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.income),
+                        value = CurrencyUtils.formatAmount(totalIncome, currencyCode),
+                        icon = Icons.Default.ArrowUpward,
+                        iconColor = SuccessGreen
+                    )
 
-                // Expense Section
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDownward ,
-                            contentDescription = null,
-                            tint = ErrorRed,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = CurrencyUtils.formatAmount(totalExpense, currencyCode),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.expenses),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.7f)
+                    // Expense Section
+                    BalanceSection(
+                        modifier = Modifier.weight(1f),
+                        label = stringResource(R.string.expenses),
+                        value = CurrencyUtils.formatAmount(totalExpense, currencyCode),
+                        icon = Icons.Default.ArrowDownward,
+                        iconColor = ErrorRed
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun BalanceSection(
+    modifier: Modifier,
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.Black.copy(alpha = 0.25f))
+            .background(iconColor.copy(alpha = 0.1f))
+            .border(1.dp, iconColor.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = iconColor.copy(alpha = 0.2f),
+            modifier = Modifier.size(32.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.8f),
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

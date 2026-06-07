@@ -1099,15 +1099,15 @@ fun CurrencySelectionContent(
         Triple("INR", stringResource(R.string.inr), "₹"),
         Triple("USD", stringResource(R.string.usd), "$"),
         Triple("EUR", stringResource(R.string.eur), "€"),
-        Triple("GBP", stringResource(R.string.gbp), "£"),
-        Triple("AED", stringResource(R.string.aed), "AED"),
+        Triple("JPY", stringResource(R.string.jpy), "¥"),
         Triple("SAR", stringResource(R.string.sar), "SAR"),
+        Triple("AED", stringResource(R.string.aed), "AED"),
+        Triple("KWD", stringResource(R.string.kwd), "KWD"),
+        Triple("QAR", stringResource(R.string.qar), "QAR"),
         Triple("SGD", stringResource(R.string.sgd), "S$"),
+        Triple("GBP", stringResource(R.string.gbp), "£"),
         Triple("AUD", stringResource(R.string.aud), "A$"),
         Triple("CAD", stringResource(R.string.cad), "C$"),
-        Triple("JPY", stringResource(R.string.jpy), "¥"),
-        Triple("KWD", stringResource(R.string.kwd), "KWD"),
-        Triple("QAR", stringResource(R.string.qar), "QAR")
     )
 
     Column(

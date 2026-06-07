@@ -63,9 +63,12 @@ fun AddTransactionScreen(
     var selectedCurrency by remember { mutableStateOf(defaultCurrency) }
     var selectedPaymentMode by remember { mutableStateOf("Cash") }
 
+    var existingTransaction by remember { mutableStateOf<Transaction?>(null) }
+
     LaunchedEffect(transactionId) {
         if (transactionId != null) {
             val transaction = viewModel.getTransactionById(transactionId)
+            existingTransaction = transaction
             transaction?.let {
                 isExpense = it.isExpense
                 amount = it.amount.toString()
@@ -93,7 +96,10 @@ fun AddTransactionScreen(
         onClose = onClose,
         onSaveExpense = { transaction ->
             if (transactionId != null) {
-                viewModel.insertTransaction(transaction.copy(id = transactionId))
+                viewModel.updateTransaction(transaction.copy(
+                    id = transactionId,
+                    uuid = existingTransaction?.uuid ?: transaction.uuid
+                ))
             } else {
                 viewModel.insertTransaction(transaction)
             }

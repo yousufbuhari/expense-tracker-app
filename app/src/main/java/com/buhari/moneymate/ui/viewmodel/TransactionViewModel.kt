@@ -84,6 +84,13 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    fun updateTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            Log.d("TransactionViewModel", "Updating: ${transaction.title}")
+            repository.updateTransaction(transaction)
+        }
+    }
+
     suspend fun getTransactionById(id: Int): Transaction? {
         return repository.getTransactionById(id)
     }
