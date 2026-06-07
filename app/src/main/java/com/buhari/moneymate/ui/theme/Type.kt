@@ -33,7 +33,7 @@ val manrope = FontFamily(
 fun getTypography(language: String): Typography {
     val isIndic = language in listOf("ta", "ml", "te", "kn")
     val activeFontFamily = manrope
-    val scaleFactor = if (isIndic) 0.9f else 1f
+    val scaleFactor = 0.9f
 
     return Typography(
         displayLarge = TextStyle(fontFamily = activeFontFamily, fontWeight = FontWeight.Normal, fontSize = (57 * scaleFactor).sp),

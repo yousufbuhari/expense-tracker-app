@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.buhari.moneymate.R
+import com.buhari.moneymate.data.entity.Transaction
+import com.buhari.moneymate.ui.components.TransactionDetailSheetContent
 import com.buhari.moneymate.ui.components.TransactionListItem
 import com.buhari.moneymate.ui.components.TransactionTypeToggle
 import com.buhari.moneymate.ui.viewmodel.TransactionViewModel
@@ -37,6 +39,8 @@ fun TransactionScreen(
     var showFilters by remember { mutableStateOf(false) }
     var filterState by remember { mutableStateOf(FilterState()) }
     var isLoading by remember { mutableStateOf(true) }
+    var selectedTransactionForDetail by remember { mutableStateOf<Transaction?>(null) }
+    val sheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(Unit) {
         delay(500)
@@ -53,8 +57,9 @@ fun TransactionScreen(
             val monthMatch = filterState.selectedMonths.isEmpty() || filterState.selectedMonths.contains(monthStr)
             val categoryMatch = filterState.selectedCategories.isEmpty() || filterState.selectedCategories.contains(transaction.category)
             val currencyMatch = filterState.selectedCurrencies.isEmpty() || filterState.selectedCurrencies.contains(transaction.currencyCode)
+            val paymentModeMatch = filterState.selectedPaymentModes.isEmpty() || filterState.selectedPaymentModes.contains(transaction.paymentMode)
             val typeMatch = transaction.isExpense == filterState.isExpense
-            monthMatch && categoryMatch && currencyMatch && typeMatch
+            monthMatch && categoryMatch && currencyMatch && paymentModeMatch && typeMatch
         }
     }
 
@@ -90,7 +95,8 @@ fun TransactionScreen(
                         IconButton(onClick = { showFilters = true }) {
                             val isFiltered = filterState.selectedMonths.isNotEmpty() || 
                                            filterState.selectedCategories.isNotEmpty() ||
-                                           filterState.selectedCurrencies.isNotEmpty()
+                                           filterState.selectedCurrencies.isNotEmpty() ||
+                                           filterState.selectedPaymentModes.isNotEmpty()
                             Icon(
                                 imageVector = Icons.Default.FilterList,
                                 contentDescription = stringResource(R.string.filter),
@@ -139,7 +145,8 @@ fun TransactionScreen(
                             Spacer(modifier = Modifier.height(16.dp))
                             val hasFilters = filterState.selectedMonths.isNotEmpty() || 
                                             filterState.selectedCategories.isNotEmpty() ||
-                                            filterState.selectedCurrencies.isNotEmpty()
+                                            filterState.selectedCurrencies.isNotEmpty() ||
+                                            filterState.selectedPaymentModes.isNotEmpty()
                             Text(
                                 text = if (hasFilters)
                                     stringResource(R.string.no_matches_for_your_filters) else stringResource(R.string.no_transactions_found),
@@ -177,13 +184,24 @@ fun TransactionScreen(
                                 TransactionListItem(
                                     transaction = transaction,
                                     onEdit = { onEditTransaction(it.id) },
-                                    onDelete = { viewModel.deleteTransaction(it) }
+                                    onDelete = { viewModel.deleteTransaction(it) },
+                                    onLongClick = { selectedTransactionForDetail = it }
                                 )
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    if (selectedTransactionForDetail != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedTransactionForDetail = null },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            TransactionDetailSheetContent(transaction = selectedTransactionForDetail!!)
         }
     }
 }

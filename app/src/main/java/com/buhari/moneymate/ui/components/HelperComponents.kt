@@ -7,10 +7,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
@@ -413,13 +415,21 @@ fun getCategoryIcon(category: String, isExpense: Boolean): Int {
 fun TransactionListItem(
     transaction: Transaction,
     onEdit: (Transaction) -> Unit = {},
-    onDelete: (Transaction) -> Unit = {}
+    onDelete: (Transaction) -> Unit = {},
+    onLongClick: (Transaction) -> Unit = {}
 ) {
     val datePart = remember { SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(Date(transaction.date)) }
     val timePart = remember { SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date(transaction.date)) }
     val dateString = "$datePart ${stringResource(R.string.at)} $timePart"
     
     val amountString = (if (transaction.isExpense) "-" else "+") + CurrencyUtils.formatAmount(transaction.amount, transaction.currencyCode)
+
+    val paymentModeDisplayNames = mapOf(
+        "Cash" to stringResource(R.string.mode_cash),
+        "Card" to stringResource(R.string.mode_card),
+        "UPI" to stringResource(R.string.mode_upi),
+        "Bank Transfer" to stringResource(R.string.mode_bank_transfer)
+    )
 
     val density = LocalDensity.current
     val actionWidth = 160.dp
@@ -507,6 +517,14 @@ fun TransactionListItem(
         }
 
         // Foreground layer: swipeable card
+        @OptIn(ExperimentalFoundationApi::class)
+        val cardShape = RoundedCornerShape(
+            topStart = 20.dp,
+            bottomStart = 20.dp,
+            topEnd = if (currentOffset < -1f) 0.dp else 20.dp,
+            bottomEnd = if (currentOffset < -1f) 0.dp else 20.dp
+        )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -516,13 +534,13 @@ fun TransactionListItem(
                         y = 0
                     )
                 }
-                .anchoredDraggable(state, Orientation.Horizontal),
-            shape = RoundedCornerShape(
-                topStart = 20.dp,
-                bottomStart = 20.dp,
-                topEnd = if (currentOffset < -1f) 0.dp else 20.dp,
-                bottomEnd = if (currentOffset < -1f) 0.dp else 20.dp
-            ),
+                .anchoredDraggable(state, Orientation.Horizontal)
+                .clip(cardShape)
+                .combinedClickable(
+                    onClick = { /* Swipe state handles actions */ },
+                    onLongClick = { onLongClick(transaction) }
+                ),
+            shape = cardShape,
             colors = CardDefaults.cardColors(
                 containerColor = if (currentOffset < -1f)
                     MaterialTheme.colorScheme.surfaceVariant
@@ -560,11 +578,33 @@ fun TransactionListItem(
                     } else {
                         transaction.title
                     }
-                    Text(
-                        text = displayTitle,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = displayTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        if (transaction.isExpense) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                            ) {
+                                Text(
+                                    text = paymentModeDisplayNames[transaction.paymentMode] ?: transaction.paymentMode,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
                     Text(
                         text = dateString,
                         style = MaterialTheme.typography.labelMedium,
@@ -1194,5 +1234,118 @@ fun ThemeSelectionContent(
             }
             Spacer(modifier = Modifier.height(4.dp))
         }
+    }
+}
+
+@Composable
+fun TransactionDetailSheetContent(
+    transaction: Transaction
+) {
+    val datePart = remember(transaction.date) { SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(Date(transaction.date)) }
+    val timePart = remember(transaction.date) { SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(transaction.date)) }
+    
+    val paymentModeDisplayNames = mapOf(
+        "Cash" to stringResource(R.string.mode_cash),
+        "Card" to stringResource(R.string.mode_card),
+        "UPI" to stringResource(R.string.mode_upi),
+        "Bank Transfer" to stringResource(R.string.mode_bank_transfer)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = getCategoryIcon(transaction.category, transaction.isExpense)),
+                contentDescription = null,
+                modifier = Modifier.size(36.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val displayTitle = if (transaction.title in listOf("Housing", "Food", "Beverages", "Groceries", "Shopping", "Fuel", "Entertainment", "Travel", "Bills", "Finance", "Health", "Sports", "Family", "Pets", "Lending", "Salary", "Freelance", "Business", "Investment", "Rental", "Bonus", "Gift", "Refund", "Other")) {
+            stringResource(getCategoryNameRes(transaction.title))
+        } else {
+            transaction.title
+        }
+
+        Text(
+            text = displayTitle,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = (if (transaction.isExpense) "-" else "+") + CurrencyUtils.formatAmount(transaction.amount, transaction.currencyCode),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (transaction.isExpense) ErrorRed else SuccessGreen,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+
+        DetailRow(label = stringResource(R.string.category), value = stringResource(getCategoryNameRes(transaction.category)))
+        DetailRow(label = stringResource(R.string.date), value = datePart)
+        DetailRow(label = stringResource(R.string.hour), value = timePart)
+        
+        if (transaction.isExpense) {
+            DetailRow(
+                label = stringResource(R.string.payment_mode), 
+                value = paymentModeDisplayNames[transaction.paymentMode] ?: transaction.paymentMode
+            )
+        }
+
+        if (!transaction.description.isNullOrBlank() && transaction.description != transaction.title) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(if (transaction.isExpense) R.string.what_did_you_spend_on else R.string.what_did_you_earn_from),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = transaction.description,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

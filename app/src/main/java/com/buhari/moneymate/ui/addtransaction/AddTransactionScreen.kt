@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
@@ -14,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +61,7 @@ fun AddTransactionScreen(
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedCurrency by remember { mutableStateOf(defaultCurrency) }
+    var selectedPaymentMode by remember { mutableStateOf("Cash") }
 
     LaunchedEffect(transactionId) {
         if (transactionId != null) {
@@ -68,6 +72,7 @@ fun AddTransactionScreen(
                 description = it.description ?: it.title
                 selectedCategory = it.category
                 selectedCurrency = it.currencyCode
+                selectedPaymentMode = it.paymentMode
                 val cal = Calendar.getInstance().apply { timeInMillis = it.date }
                 selectedDate = cal.clone() as Calendar
                 selectedTime = cal.clone() as Calendar
@@ -83,6 +88,7 @@ fun AddTransactionScreen(
         selectedDateInit = selectedDate,
         selectedTimeInit = selectedTime,
         selectedCurrencyInit = selectedCurrency,
+        selectedPaymentModeInit = selectedPaymentMode,
         isEdit = transactionId != null,
         onClose = onClose,
         onSaveExpense = { transaction ->
@@ -107,6 +113,7 @@ fun AddTransactionContent(
     selectedDateInit: Calendar = Calendar.getInstance(),
     selectedTimeInit: Calendar = Calendar.getInstance(),
     selectedCurrencyInit: String = "INR",
+    selectedPaymentModeInit: String = "Cash",
     isEdit: Boolean = false,
     onClose: () -> Unit = {},
     onSaveExpense: (Transaction) -> Unit = {}
@@ -116,6 +123,7 @@ fun AddTransactionContent(
     var description by remember(descriptionInit) { mutableStateOf(descriptionInit) }
     var selectedCategory by remember(selectedCategoryInit) { mutableStateOf(selectedCategoryInit) }
     var selectedCurrency by remember(selectedCurrencyInit) { mutableStateOf(selectedCurrencyInit) }
+    var selectedPaymentMode by remember(selectedPaymentModeInit) { mutableStateOf(selectedPaymentModeInit) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val res = context.resources
@@ -305,7 +313,8 @@ fun AddTransactionContent(
                                 category = selectedCategory,
                                 isExpense = isExpense,
                                 icon = getCategoryIcon(selectedCategory, isExpense),
-                                currencyCode = selectedCurrency
+                                currencyCode = selectedCurrency,
+                                paymentMode = selectedPaymentMode
                             )
                             onSaveExpense(transaction)
                         } else {
@@ -488,6 +497,55 @@ fun AddTransactionContent(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            if (isExpense) {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    stringResource(R.string.payment_mode),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                val paymentModes = listOf("Cash", "Card", "UPI", "Bank Transfer")
+                val paymentModeDisplayNames = mapOf(
+                    "Cash" to stringResource(R.string.mode_cash),
+                    "Card" to stringResource(R.string.mode_card),
+                    "UPI" to stringResource(R.string.mode_upi),
+                    "Bank Transfer" to stringResource(R.string.mode_bank_transfer)
+                )
+
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    paymentModes.forEach { mode ->
+                        val isSelected = selectedPaymentMode == mode
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedPaymentMode = mode },
+                            label = {
+                                Text(
+                                    text = paymentModeDisplayNames[mode] ?: mode,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = PrimaryPurple,
+                                selectedLabelColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(10.dp)
                         )
                     }
                 }

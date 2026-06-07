@@ -9,7 +9,7 @@ import com.buhari.moneymate.data.dao.UserProfileDao
 import com.buhari.moneymate.data.entity.Transaction
 import com.buhari.moneymate.data.entity.UserProfile
 
-@Database(entities = [Transaction::class, UserProfile::class], version = 5, exportSchema = false)
+@Database(entities = [Transaction::class, UserProfile::class], version = 6, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun userProfileDao(): UserProfileDao

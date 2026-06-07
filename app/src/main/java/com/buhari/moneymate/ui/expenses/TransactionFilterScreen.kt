@@ -29,6 +29,7 @@ data class FilterState(
     val selectedMonths: Set<String> = emptySet(),
     val selectedCategories: Set<String> = emptySet(),
     val selectedCurrencies: Set<String> = emptySet(),
+    val selectedPaymentModes: Set<String> = emptySet(),
     val isExpense: Boolean = true
 )
 
@@ -42,13 +43,16 @@ fun TransactionFilterScreen(
     val monthsTab = "Months"
     val categoriesTab = "Categories"
     val currenciesTab = "Currencies"
+    val paymentModesTab = "PaymentModes"
     var activeTab by remember { mutableStateOf(monthsTab) }
     var selectedMonths by remember { mutableStateOf(initialState.selectedMonths) }
     var selectedCategories by remember { mutableStateOf(initialState.selectedCategories) }
     var selectedCurrencies by remember { mutableStateOf(initialState.selectedCurrencies) }
+    var selectedPaymentModes by remember { mutableStateOf(initialState.selectedPaymentModes) }
     var isExpense by remember { mutableStateOf(initialState.isExpense) }
 
     val currencies = listOf("INR", "USD", "EUR", "GBP", "AED", "SAR", "SGD", "AUD", "CAD", "JPY", "KWD", "QAR")
+    val paymentModes = listOf("Cash", "Card", "UPI", "Bank Transfer")
 
     val expenseCategories = listOf("Housing", "Food", "Beverages", "Groceries", "Shopping", "Fuel", "Entertainment", "Travel", "Bills", "Finance", "Health", "Sports", "Family", "Pets", "Lending", "Other")
     val incomeCategories = listOf("Salary", "Freelance", "Business", "Investment", "Rental", "Bonus", "Gift", "Refund", "Other")
@@ -78,7 +82,11 @@ fun TransactionFilterScreen(
         "Bonus" to stringResource(R.string.cat_bonus),
         "Gift" to stringResource(R.string.cat_gift),
         "Refund" to stringResource(R.string.cat_refund),
-        "Other" to stringResource(R.string.cat_other)
+        "Other" to stringResource(R.string.cat_other),
+        "Cash" to stringResource(R.string.mode_cash),
+        "Card" to stringResource(R.string.mode_card),
+        "UPI" to stringResource(R.string.mode_upi),
+        "Bank Transfer" to stringResource(R.string.mode_bank_transfer)
     )
 
     val categories = if (isExpense) expenseCategories else incomeCategories
@@ -111,6 +119,7 @@ fun TransactionFilterScreen(
                         selectedMonths = emptySet()
                         selectedCategories = emptySet()
                         selectedCurrencies = emptySet()
+                        selectedPaymentModes = emptySet()
                     }) {
                         Text(stringResource(R.string.clear_all), color = MaterialTheme.colorScheme.secondary)
                     }
@@ -120,7 +129,7 @@ fun TransactionFilterScreen(
         bottomBar = {
             Box(modifier = Modifier.padding(16.dp)) {
                 Button(
-                    onClick = { onApply(FilterState(selectedMonths, selectedCategories, selectedCurrencies, isExpense)) },
+                    onClick = { onApply(FilterState(selectedMonths, selectedCategories, selectedCurrencies, selectedPaymentModes, isExpense)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -143,6 +152,9 @@ fun TransactionFilterScreen(
                     onTypeChange = { 
                         isExpense = it 
                         selectedCategories = emptySet() // Reset categories when switching type
+                        if (!it && activeTab == paymentModesTab) {
+                            activeTab = monthsTab
+                        }
                     }
                 )
             }
@@ -161,6 +173,9 @@ fun TransactionFilterScreen(
                     FilterTabItem(stringResource(R.string.months), activeTab == monthsTab) { activeTab = monthsTab }
                     FilterTabItem(stringResource(R.string.categories), activeTab == categoriesTab) { activeTab = categoriesTab }
                     FilterTabItem(stringResource(R.string.currency), activeTab == currenciesTab) { activeTab = currenciesTab }
+                    if (isExpense) {
+                        FilterTabItem(stringResource(R.string.payment_mode), activeTab == paymentModesTab) { activeTab = paymentModesTab }
+                    }
                 }
 
                 // Right Content
@@ -211,6 +226,21 @@ fun TransactionFilterScreen(
                                             selectedCurrencies - currency
                                         } else {
                                             selectedCurrencies + currency
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        paymentModesTab -> {
+                            items(paymentModes) { mode ->
+                                FilterOptionRow(
+                                    label = categoryDisplayNames[mode] ?: mode,
+                                    isSelected = selectedPaymentModes.contains(mode),
+                                    onSelect = {
+                                        selectedPaymentModes = if (selectedPaymentModes.contains(mode)) {
+                                            selectedPaymentModes - mode
+                                        } else {
+                                            selectedPaymentModes + mode
                                         }
                                     }
                                 )

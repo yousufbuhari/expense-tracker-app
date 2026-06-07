@@ -96,9 +96,10 @@
     <string name="ok">ಸರಿ</string>
     <string name="hour">ಗಂಟೆ</string>
     <string name="minute">ನಿಮಿಷ</string>
-    <string name="am">ಪೂರ್ವಾಹ್ನ</string>
-    <string name="pm">ಅಪರಾಹ್ನ</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
     <string name="back">ಹಿಂದೆ</string>
+    <string name="date">ದಿನಾಂಕ</string>
     <string name="today">ಇಂದು</string>
     <string name="filter">ಫಿಲ್ಟರ್</string>
     <string name="clear_filters">ಫಿಲ್ಟರ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ</string>
@@ -151,4 +152,11 @@
     <string name="cat_bonus">ಬೋನಸ್</string>
     <string name="cat_gift">ಉಡುಗೊರೆ</string>
     <string name="cat_refund">ಮರುಪಾವತಿ</string>
+
+    <!-- Payment Modes -->
+    <string name="payment_mode">ಪಾವತಿ ವಿಧಾನ</string>
+    <string name="mode_cash">ನಗದು</string>
+    <string name="mode_card">ಕಾರ್ಡ್</string>
+    <string name="mode_upi">ಯುಪಿಐ</string>
+    <string name="mode_bank_transfer">ಬ್ಯಾಂಕ್ ವರ್ಗಾವಣೆ</string>
 </resources>

@@ -95,9 +95,10 @@
     <string name="ok">OK</string>
     <string name="hour">Hour</string>
     <string name="minute">Minute</string>
-    <string name="am">am</string>
-    <string name="pm">pm</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
     <string name="back">Back</string>
+    <string name="date">Date</string>
     <string name="today">Today</string>
     <string name="filter">Filter</string>
     <string name="clear_filters">Clear Filters</string>
@@ -150,4 +151,11 @@
     <string name="cat_bonus">Bonus</string>
     <string name="cat_gift">Gift</string>
     <string name="cat_refund">Refund</string>
+
+    <!-- Payment Modes -->
+    <string name="payment_mode">Payment Mode</string>
+    <string name="mode_cash">Cash</string>
+    <string name="mode_card">Card</string>
+    <string name="mode_upi">UPI</string>
+    <string name="mode_bank_transfer">Bank Transfer</string>
 </resources>

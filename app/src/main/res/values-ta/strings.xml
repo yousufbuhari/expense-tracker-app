@@ -95,9 +95,10 @@
     <string name="ok">சரி</string>
     <string name="hour">மணி</string>
     <string name="minute">நிமிடம்</string>
-    <string name="am">முற்பகல்</string>
-    <string name="pm">பிற்பகல்</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
     <string name="back">பின்செல்</string>
+    <string name="date">தேதி</string>
     <string name="today">இன்று</string>
     <string name="filter">வடிப்பான்</string>
     <string name="clear_filters">வடிப்பான்களை நீக்கு</string>
@@ -150,4 +151,11 @@
     <string name="cat_bonus">போனஸ்</string>
     <string name="cat_gift">பரிசு</string>
     <string name="cat_refund">பணத் திருப்பம்</string>
+
+    <!-- Payment Modes -->
+    <string name="payment_mode">கட்டண முறை</string>
+    <string name="mode_cash">பணம்</string>
+    <string name="mode_card">அட்டை</string>
+    <string name="mode_upi">யுபிஐ</string>
+    <string name="mode_bank_transfer">வங்கி பரிமாற்றம்</string>
 </resources>

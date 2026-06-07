@@ -99,6 +99,7 @@
     <string name="minute">മിനിറ്റ്</string>
     <string name="am">AM</string>
     <string name="pm">PM</string>
+    <string name="date">തീയതി</string>
     <string name="back">പിന്നോട്ട്</string>
     <string name="today">ഇന്ന്</string>
     <string name="filter">ഫിൽട്ടർ</string>
@@ -152,4 +153,11 @@
     <string name="cat_bonus">ബോണസ്</string>
     <string name="cat_gift">സമ്മാനം</string>
     <string name="cat_refund">റീഫണ്ട്</string>
+
+    <!-- Payment Modes -->
+    <string name="payment_mode">പേയ്മെന്റ് രീതി</string>
+    <string name="mode_cash">പണം</string>
+    <string name="mode_card">കാർഡ്</string>
+    <string name="mode_upi">യുപിഐ</string>
+    <string name="mode_bank_transfer">ബാങ്ക് ട്രാൻസ്ഫർ</string>
 </resources>

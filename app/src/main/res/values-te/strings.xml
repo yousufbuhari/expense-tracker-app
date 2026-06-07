@@ -98,6 +98,7 @@
     <string name="am">AM</string>
     <string name="pm">PM</string>
     <string name="back">వెనుకకు</string>
+    <string name="date">తేదీ</string>
     <string name="today">ఈ రోజు</string>
     <string name="filter">ఫిల్టర్</string>
     <string name="clear_filters">ఫిల్టర్లను తొలగించు</string>
@@ -150,4 +151,11 @@
     <string name="cat_bonus">బోనస్</string>
     <string name="cat_gift">బహుమతి</string>
     <string name="cat_refund">రిఫండ్</string>
+
+    <!-- Payment Modes -->
+    <string name="payment_mode">చెల్లింపు విధానం</string>
+    <string name="mode_cash">నగదు</string>
+    <string name="mode_card">కార్డ్</string>
+    <string name="mode_upi">యూపీఐ</string>
+    <string name="mode_bank_transfer">బ్యాంక్ బదిలీ</string>
 </resources>

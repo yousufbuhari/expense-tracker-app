@@ -26,7 +26,7 @@ import java.io.OutputStreamWriter
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
-        private const val CSV_HEADER = "uuid,title,amount,date,category,isExpense,icon,description"
+        private const val CSV_HEADER = "uuid,title,amount,date,category,isExpense,icon,description,paymentMode"
     }
 
     private val repository: TransactionRepository by lazy {
@@ -153,7 +153,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                                 val line =
                                     "${t.uuid},${escapeCsv(t.title)},${t.amount},${t.date},${escapeCsv(t.category)},${t.isExpense},${t.icon},${
                                         escapeCsv(t.description ?: "")
-                                    }\n"
+                                    },${escapeCsv(t.paymentMode)}\n"
                                 writer.write(line)
                             }
                         }
@@ -207,7 +207,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                                                 if (parts.size > 7) parts[7] else null
                                             } else {
                                                 if (parts.size > 6) parts[6] else null
-                                            }
+                                            },
+                                            paymentMode = if (hasUuid && parts.size > 8) parts[8] else "Cash"
                                         )
                                         
                                         // Only add if it's a valid transaction (amount > 0)

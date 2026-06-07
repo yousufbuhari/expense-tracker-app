@@ -96,8 +96,9 @@
     <string name="ok">ठीक है</string>
     <string name="hour">घंटा</string>
     <string name="minute">मिनट</string>
-    <string name="am">पूर्वाह्न</string>
-    <string name="pm">अपराह्न</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    <string name="date">तारीख</string>
     <string name="back">वापस</string>
     <string name="today">आज</string>
     <string name="filter">फ़िल्टर</string>
@@ -151,4 +152,11 @@
     <string name="cat_bonus">बोनस</string>
     <string name="cat_gift">उपहार</string>
     <string name="cat_refund">रिफंड</string>
+
+    <!-- Payment Modes -->
+    <string name="payment_mode">भुगतान का तरीका</string>
+    <string name="mode_cash">नकद</string>
+    <string name="mode_card">कार्ड</string>
+    <string name="mode_upi">यूपीआई</string>
+    <string name="mode_bank_transfer">बैंक ट्रांसफर</string>
 </resources>

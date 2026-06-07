@@ -30,5 +30,7 @@ data class Transaction(
     @ColumnInfo(name = "description")
     val description: String? = null,
     @ColumnInfo(name = "currencyCode")
-    val currencyCode: String = "INR"
+    val currencyCode: String = "INR",
+    @ColumnInfo(name = "paymentMode")
+    val paymentMode: String = "Cash"
 )

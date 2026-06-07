@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import coil3.compose.AsyncImage
+import com.buhari.moneymate.ui.components.TransactionDetailSheetContent
 import com.buhari.moneymate.ui.components.TransactionListItem
 import com.buhari.moneymate.ui.components.getCategoryNameRes
 import kotlinx.coroutines.delay
@@ -69,6 +70,8 @@ fun DashboardScreen(
 
     var isRefreshing by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
+    var selectedTransactionForDetail by remember { mutableStateOf<Transaction?>(null) }
+    val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -98,8 +101,19 @@ fun DashboardScreen(
             onAddTransaction = onAddTransaction,
             onEditTransaction = onEditTransaction,
             onDeleteTransaction = { viewModel.deleteTransaction(it) },
+            onLongClickTransaction = { selectedTransactionForDetail = it },
             onViewAll = onViewAll
         )
+    }
+
+    if (selectedTransactionForDetail != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedTransactionForDetail = null },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            TransactionDetailSheetContent(transaction = selectedTransactionForDetail!!)
+        }
     }
 }
 
@@ -114,6 +128,7 @@ fun DashboardContent(
     onAddTransaction: () -> Unit,
     onEditTransaction: (Int) -> Unit,
     onDeleteTransaction: (Transaction) -> Unit,
+    onLongClickTransaction: (Transaction) -> Unit,
     onViewAll: () -> Unit
 ) {
     val balance = totalIncome - totalExpense
@@ -304,7 +319,8 @@ fun DashboardContent(
                                 TransactionListItem(
                                     transaction = transaction,
                                     onEdit = { onEditTransaction(it.id) },
-                                    onDelete = { onDeleteTransaction(it) }
+                                    onDelete = { onDeleteTransaction(it) },
+                                    onLongClick = { onLongClickTransaction(it) }
                                 )
                             }
                         }
@@ -475,7 +491,8 @@ val recentTransactions = listOf(
         date = System.currentTimeMillis(),
         category = "Food",
         isExpense = true,
-        icon = R.drawable.ic_food
+        icon = R.drawable.ic_food,
+        paymentMode = "UPI"
     ),
     Transaction(
         id = 2,
@@ -484,7 +501,8 @@ val recentTransactions = listOf(
         date = System.currentTimeMillis() - 86400000,
         category = "Transport",
         isExpense = true,
-        icon = R.drawable.ic_travel
+        icon = R.drawable.ic_travel,
+        paymentMode = "Card"
     ),
     Transaction(
         id = 3,
@@ -493,7 +511,8 @@ val recentTransactions = listOf(
         date = System.currentTimeMillis() - 172800000,
         category = "Bills",
         isExpense = true,
-        icon = R.drawable.ic_home
+        icon = R.drawable.ic_home,
+        paymentMode = "Bank Transfer"
     ),
     Transaction(
         id = 4,
@@ -502,7 +521,8 @@ val recentTransactions = listOf(
         date = System.currentTimeMillis() - 259200000,
         category = "Groceries",
         isExpense = true,
-        icon = R.drawable.ic_groceries
+        icon = R.drawable.ic_groceries,
+        paymentMode = "Cash"
     )
 )
 
@@ -519,6 +539,7 @@ private fun DashboardPreview() {
             onAddTransaction = {},
             onEditTransaction = {},
             onDeleteTransaction = {},
+            onLongClickTransaction = {},
             onViewAll = {}
         )
     }
